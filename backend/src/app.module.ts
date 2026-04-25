@@ -1,0 +1,53 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { ProfilesModule } from './profiles/profiles.module';
+import { ContentModule } from './content/content.module';
+import { SeasonsModule } from './seasons/seasons.module';
+import { EpisodesModule } from './episodes/episodes.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { PaymentsModule } from './payments/payments.module';
+import { WatchHistoryModule } from './watch-history/watch-history.module';
+import { RatingsModule } from './ratings/ratings.module';
+import { FavoritesModule } from './favorites/favorites.module';
+import { RecommendationsModule } from './recommendations/recommendations.module';
+import { AdminModule } from './admin/admin.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { HealthModule } from './health/health.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: () => [{ ttl: 60000, limit: 100 }],
+    }),
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    ProfilesModule,
+    ContentModule,
+    SeasonsModule,
+    EpisodesModule,
+    SubscriptionsModule,
+    PaymentsModule,
+    WatchHistoryModule,
+    RatingsModule,
+    FavoritesModule,
+    RecommendationsModule,
+    AdminModule,
+    AnalyticsModule,
+    NotificationsModule,
+    UploadsModule,
+    HealthModule,
+  ],
+})
+export class AppModule {}
