@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, ArrowRight, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 
-export default function SubscriptionSuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const qc = useQueryClient();
@@ -113,5 +113,13 @@ export default function SubscriptionSuccessPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SubscriptionSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-nexora-dark flex items-center justify-center"><Loader2 className="w-12 h-12 text-nexora-red animate-spin" /></div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }

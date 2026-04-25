@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Loader2 as Spinner } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { ContentCard } from '@/components/content/ContentCard';
 import { useContent, useGenres } from '@/hooks/useContent';
@@ -22,7 +23,7 @@ const SORT_OPTIONS = [
   { value: 'releaseYear', label: 'Año' },
 ];
 
-export default function BrowsePage() {
+function BrowseContent() {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [type, setType] = useState(searchParams.get('type') || '');
@@ -165,5 +166,13 @@ export default function BrowsePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function BrowsePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-nexora-dark flex items-center justify-center"><Spinner className="w-10 h-10 text-nexora-red animate-spin" /></div>}>
+      <BrowseContent />
+    </Suspense>
   );
 }
