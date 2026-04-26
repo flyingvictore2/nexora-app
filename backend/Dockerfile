@@ -2,7 +2,10 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# v1.1.0 — requests+support+migration-sql (cache bust: 20260426-b)
+# Install OpenSSL — required by Prisma schema engine on Alpine
+RUN apk add --no-cache openssl
+
+# v1.1.0 — requests+support+migration-sql
 # Copy ALL files first (including prisma/schema.prisma needed by postinstall)
 COPY . .
 
