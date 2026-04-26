@@ -1,0 +1,85 @@
+{
+  "name": "nexora-launcher",
+  "version": "1.0.0",
+  "description": "Nexora Streaming Platform — Desktop Launcher",
+  "main": "src/main.js",
+  "author": {
+    "name": "Nexora Team",
+    "email": "support@nexora.app"
+  },
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-packager . Nexora --platform=win32 --arch=x64 --out=dist --icon=assets/icon.ico --app-version=1.0.0 --overwrite",
+    "pack:mac": "electron-packager . Nexora --platform=darwin --arch=x64 --out=dist --icon=assets/icon.icns --app-version=1.0.0 --overwrite",
+    "icons": "node scripts/create-icons.js",
+    "build": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.0.0",
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.nexora.launcher",
+    "productName": "Nexora",
+    "copyright": "Copyright © 2025 Nexora Team",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "flyingvictore2",
+      "repo": "nexora-app",
+      "releaseType": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.entertainment"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png",
+      "category": "AudioVideo"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nexora",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh"
+    }
+  }
+}

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexora</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+
+    .window {
+      width: 480px;
+      height: 300px;
+      background: #0a0a0a;
+      border-radius: 16px;
+      border: 1px solid rgba(229, 9, 20, 0.25);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 40px 80px rgba(0,0,0,0.8),
+        0 0 60px rgba(229,9,20,0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated background glow */
+    .glow {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(229,9,20,0.12) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+      50%       { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+    }
+
+    /* Top border accent */
+    .accent-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #e50914, transparent);
+      animation: slide 2s ease-in-out infinite;
+    }
+
+    @keyframes slide {
+      0%   { opacity: 0.4; }
+      50%  { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    /* Logo */
+    .logo {
+      position: relative;
+      z-index: 1;
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: 10px;
+      color: #e50914;
+      text-shadow: 0 0 30px rgba(229,9,20,0.5);
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tagline {
+      position: relative;
+      z-index: 1;
+      margin-top: 6px;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      animation: fadeIn 0.6s ease-out 0.2s both;
+    }
+
+    /* Status area */
+    .status-area {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px 24px 24px;
+      z-index: 1;
+    }
+
+    .status-text {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .status-text span { transition: opacity 0.3s ease; }
+
+    /* Progress bar */
+    .progress-track {
+      height: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #e50914, #ff4444);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 8px rgba(229,9,20,0.6);
+    }
+
+    .progress-bar.indeterminate {
+      width: 40% !important;
+      animation: indeterminate 1.4s ease-in-out infinite;
+    }
+
+    @keyframes indeterminate {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(300%); }
+    }
+
+    /* Version */
+    .version {
+      position: absolute;
+      bottom: 10px;
+      right: 14px;
+      font-size: 9px;
+      color: rgba(255,255,255,0.15);
+      z-index: 1;
+    }
+
+    /* Dots loader */
+    .dots::after {
+      content: '';
+      animation: dots 1.2s steps(4) infinite;
+    }
+
+    @keyframes dots {
+      0%   { content: ''; }
+      25%  { content: '.'; }
+      50%  { content: '..'; }
+      75%  { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="accent-line"></div>
+    <div class="glow"></div>
+
+    <div class="logo">NEXORA</div>
+    <div class="tagline">Tu plataforma de streaming</div>
+
+    <div class="status-area">
+      <div class="status-text">
+        <span id="status-msg" class="dots">Iniciando</span>
+        <span id="status-pct"></span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar indeterminate" id="progress-bar"></div>
+      </div>
+    </div>
+
+    <div class="version" id="version-label">v1.0.0</div>
+  </div>
+
+  <script>
+    const bar     = document.getElementById('progress-bar');
+    const msg     = document.getElementById('status-msg');
+    const pct     = document.getElementById('status-pct');
+    const verEl   = document.getElementById('version-label');
+
+    // Get version
+    window.launcher?.getVersion().then(v => { verEl.textContent = 'v' + v; });
+
+    function setIndeterminate() {
+      bar.style.width = '';
+      bar.classList.add('indeterminate');
+      pct.textContent = '';
+    }
+
+    function setProgress(percent) {
+      bar.classList.remove('indeterminate');
+      bar.style.width = percent + '%';
+      pct.textContent = percent + '%';
+    }
+
+    function setMsg(text) {
+      msg.className = '';
+      msg.textContent = text;
+    }
+
+    function setMsgDots(text) {
+      msg.className = 'dots';
+      msg.textContent = text;
+    }
+
+    // Listen for update events from main process
+    window.launcher?.onUpdateStatus((data) => {
+      switch (data.status) {
+        case 'checking':
+          setMsgDots('Buscando actualizaciones');
+          setIndeterminate();
+          break;
+
+        case 'downloading':
+          setMsgDots('Descargando v' + data.version);
+          setIndeterminate();
+          break;
+
+        case 'progress':
+          setMsg('Descargando actualización — ' + (data.speed || ''));
+          setProgress(data.percent);
+          break;
+
+        case 'installing':
+          setMsg('Instalando v' + data.version + '...');
+          setProgress(100);
+          break;
+
+        case 'launching':
+          setMsg('¡Listo! Abriendo Nexora...');
+          setProgress(100);
+          break;
+
+        default:
+          setMsgDots('Iniciando');
+      }
+    });
+  </script>
+</body>
+</html>
