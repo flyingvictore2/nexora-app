@@ -14,4 +14,4 @@ RUN npm run build
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main"]
+CMD ["sh", "-c", "echo '>>> Starting migration...' && npx prisma migrate deploy && echo '>>> Migration done. Starting app...' && node dist/src/main"]
