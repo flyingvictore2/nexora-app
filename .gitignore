@@ -31,8 +31,8 @@ frontend/frontend.log
 .DS_Store
 Thumbs.db
 
-# Prisma
-backend/prisma/migrations/**/migration.sql
+# Prisma — migration SQL must be committed for Railway deploy
+# backend/prisma/migrations/**/migration.sql
 
 # IDE
 .vscode/
