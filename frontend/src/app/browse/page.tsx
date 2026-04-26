@@ -35,6 +35,15 @@ function BrowseContent() {
 
   const { data: genresData } = useGenres();
 
+  // Sync filters when URL params change (e.g. navbar links: Series, Películas, Anime)
+  useEffect(() => {
+    setType(searchParams.get('type') || '');
+    setSearch(searchParams.get('search') || '');
+    setGenre(searchParams.get('genre') || '');
+    setPage(1);
+    setAllItems([]);
+  }, [searchParams]);
+
   const params = {
     search: search || undefined,
     type: type || undefined,
