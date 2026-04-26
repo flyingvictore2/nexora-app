@@ -54,11 +54,13 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  profiles     Profile[]
-  subscription Subscription?
-  payments     Payment[]
-  watchHistory WatchHistory[]
-  ratings      Rating[]
+  profiles        Profile[]
+  subscription    Subscription?
+  payments        Payment[]
+  watchHistory    WatchHistory[]
+  ratings         Rating[]
+  contentRequests ContentRequest[]
+  supportTickets  SupportTicket[]
 
   @@index([email])
 }
@@ -296,6 +298,68 @@ model Favorite {
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, contentId])
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RequestType {
+  MOVIE
+  SERIES
+  ANIME
+  OTHER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  TECHNICAL
+  BILLING
+  CONTENT
+  ACCOUNT
+  OTHER
+}
+
+model ContentRequest {
+  id          String        @id @default(cuid())
+  userId      String
+  title       String
+  type        RequestType
+  description String?
+  status      RequestStatus @default(PENDING)
+  adminNote   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model SupportTicket {
+  id         String         @id @default(cuid())
+  userId     String
+  subject    String
+  message    String
+  category   TicketCategory @default(OTHER)
+  status     TicketStatus   @default(OPEN)
+  adminReply String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
 }
 
 model Notification {

@@ -29,6 +29,8 @@ const analytics_module_1 = require("./analytics/analytics.module");
 const notifications_module_1 = require("./notifications/notifications.module");
 const uploads_module_1 = require("./uploads/uploads.module");
 const health_module_1 = require("./health/health.module");
+const requests_module_1 = require("./requests/requests.module");
+const support_module_1 = require("./support/support.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -60,6 +62,8 @@ exports.AppModule = AppModule = __decorate([
             notifications_module_1.NotificationsModule,
             uploads_module_1.UploadsModule,
             health_module_1.HealthModule,
+            requests_module_1.RequestsModule,
+            support_module_1.SupportModule,
         ],
     })
 ], AppModule);

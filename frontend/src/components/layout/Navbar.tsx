@@ -126,6 +126,18 @@ export function Navbar() {
                 >
                   Mi Lista
                 </Link>
+                <Link
+                  href="/requests"
+                  className={cn('text-sm transition-colors', pathname === '/requests' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
+                >
+                  Solicitudes
+                </Link>
+                <Link
+                  href="/support"
+                  className={cn('text-sm transition-colors', pathname === '/support' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
+                >
+                  Soporte
+                </Link>
               </>
             )}
             <Link

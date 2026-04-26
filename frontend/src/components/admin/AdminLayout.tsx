@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Film, Users, CreditCard, BarChart2,
   Settings, LogOut, Menu, X, ChevronRight, Bell,
+  Inbox, HeadphonesIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
@@ -16,6 +17,8 @@ const navItems = [
   { href: '/admin/users', label: 'Usuarios', icon: Users },
   { href: '/admin/analytics', label: 'Analíticas', icon: BarChart2 },
   { href: '/admin/subscriptions', label: 'Planes', icon: CreditCard },
+  { href: '/admin/requests', label: 'Solicitudes', icon: Inbox },
+  { href: '/admin/support', label: 'Soporte', icon: HeadphonesIcon },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
