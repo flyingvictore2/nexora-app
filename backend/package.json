@@ -24,6 +24,10 @@
     "db:reset": "prisma migrate reset --force && ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@nestjs/cli": "^10.3.0",
+    "@nestjs/schematics": "^10.1.0",
+    "prisma": "^5.8.0",
+    "typescript": "^5.3.3",
     "@nestjs/cache-manager": "^2.2.0",
     "@nestjs/common": "^10.3.0",
     "@nestjs/config": "^3.1.1",
@@ -63,8 +67,6 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^10.3.0",
-    "@nestjs/schematics": "^10.1.0",
     "@nestjs/testing": "^10.3.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.7.5",
@@ -80,9 +82,7 @@
     "@typescript-eslint/parser": "^6.19.1",
     "eslint": "^8.56.0",
     "jest": "^29.7.0",
-    "prisma": "^5.8.0",
     "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "ts-node": "^10.9.2"
   }
 }
