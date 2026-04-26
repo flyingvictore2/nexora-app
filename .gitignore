@@ -8,6 +8,9 @@ dist/
 .next/
 out/
 build/
+# Allow pre-built backend dist (needed for Railway deployment)
+!backend/dist/
+backend/dist/tsconfig.tsbuildinfo
 
 # Environment files — NEVER commit these
 .env
