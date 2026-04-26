@@ -20,12 +20,47 @@ export class PaymentsService {
     });
   }
 
+  /** Ensure the plan has a Stripe price ID, creating one on-the-fly if needed */
+  private async ensureStripePriceId(plan: { id: string; name: string; price: number; stripePriceId?: string | null }): Promise<string> {
+    if (plan.stripePriceId) return plan.stripePriceId;
+
+    this.logger.log(`Creating Stripe product+price for plan "${plan.name}" ($${plan.price}/month)`);
+
+    // Create product
+    const product = await this.stripe.products.create({
+      name: `Nexora ${plan.name}`,
+      metadata: { planId: plan.id },
+    });
+
+    // Create recurring price
+    const price = await this.stripe.prices.create({
+      product: product.id,
+      currency: 'usd',
+      unit_amount: Math.round(plan.price * 100), // cents
+      recurring: { interval: 'month' },
+      metadata: { planId: plan.id },
+    });
+
+    // Persist so we don't create duplicates next time
+    await this.prisma.plan.update({
+      where: { id: plan.id },
+      data: { stripePriceId: price.id },
+    });
+
+    this.logger.log(`Stripe price created: ${price.id} for plan ${plan.id}`);
+    return price.id;
+  }
+
   async createCheckoutSession(userId: string, planId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
     const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
-    if (!plan || !plan.stripePriceId) throw new BadRequestException('Plan not available for purchase');
+    if (!plan) throw new NotFoundException('Plan not found');
+    if (plan.price === 0) throw new BadRequestException('Free plan does not require payment');
+
+    // Auto-create Stripe price if not configured yet
+    const stripePriceId = await this.ensureStripePriceId(plan);
 
     // Get or create Stripe customer
     let stripeCustomerId: string;
@@ -45,7 +80,7 @@ export class PaymentsService {
       customer: stripeCustomerId,
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+      line_items: [{ price: stripePriceId, quantity: 1 }],
       success_url: `${frontendUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/subscription/plans`,
       subscription_data: {
