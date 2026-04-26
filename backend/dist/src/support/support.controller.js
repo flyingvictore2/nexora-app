@@ -21,45 +21,54 @@ const roles_decorator_1 = require("../common/decorators/roles.decorator");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 const client_1 = require("@prisma/client");
 const support_service_1 = require("./support.service");
+const create_ticket_dto_1 = require("./dto/create-ticket.dto");
 let SupportController = class SupportController {
     constructor(service) {
         this.service = service;
     }
-    create(user, body) {
-        return this.service.create(user.id, body);
+    create(userId, dto) {
+        return this.service.create(userId, dto);
     }
-    findMine(user) {
-        return this.service.findByUser(user.id);
-    }
-    findAll(query) {
-        return this.service.findAll(query);
+    findMine(userId) {
+        return this.service.findByUser(userId);
     }
     getStats() {
         return this.service.getStats();
     }
-    reply(id, body) {
-        return this.service.reply(id, body.adminReply, body.status);
+    findAll(query) {
+        return this.service.findAll(query);
     }
-    updateStatus(id, body) {
-        return this.service.updateStatus(id, body.status);
+    reply(id, dto) {
+        return this.service.reply(id, dto.adminReply, dto.status);
+    }
+    updateStatus(id, dto) {
+        return this.service.updateStatus(id, dto.status);
     }
 };
 exports.SupportController = SupportController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(0, (0, current_user_decorator_1.CurrentUser)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [String, create_ticket_dto_1.CreateTicketDto]),
     __metadata("design:returntype", void 0)
 ], SupportController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('my'),
-    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(0, (0, current_user_decorator_1.CurrentUser)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], SupportController.prototype, "findMine", null);
+__decorate([
+    (0, common_1.Get)('stats'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], SupportController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)(),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
@@ -70,21 +79,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SupportController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)('stats'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], SupportController.prototype, "getStats", null);
-__decorate([
     (0, common_1.Patch)(':id/reply'),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, create_ticket_dto_1.ReplyTicketDto]),
     __metadata("design:returntype", void 0)
 ], SupportController.prototype, "reply", null);
 __decorate([
@@ -94,7 +95,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, create_ticket_dto_1.UpdateTicketStatusDto]),
     __metadata("design:returntype", void 0)
 ], SupportController.prototype, "updateStatus", null);
 exports.SupportController = SupportController = __decorate([

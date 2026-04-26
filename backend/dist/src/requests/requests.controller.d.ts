@@ -1,12 +1,9 @@
 import { RequestsService } from './requests.service';
+import { CreateRequestDto, UpdateRequestStatusDto } from './dto/create-request.dto';
 export declare class RequestsController {
     private service;
     constructor(service: RequestsService);
-    create(user: any, body: {
-        title: string;
-        type: string;
-        description?: string;
-    }): Promise<{
+    create(userId: string, dto: CreateRequestDto): Promise<{
         id: string;
         description: string | null;
         createdAt: Date;
@@ -17,7 +14,7 @@ export declare class RequestsController {
         type: import(".prisma/client").$Enums.RequestType;
         adminNote: string | null;
     }>;
-    findMine(user: any): Promise<{
+    findMine(userId: string): Promise<{
         id: string;
         description: string | null;
         createdAt: Date;
@@ -28,6 +25,12 @@ export declare class RequestsController {
         type: import(".prisma/client").$Enums.RequestType;
         adminNote: string | null;
     }[]>;
+    getStats(): Promise<{
+        total: number;
+        pending: number;
+        approved: number;
+        rejected: number;
+    }>;
     findAll(query: any): Promise<{
         requests: ({
             user: {
@@ -48,16 +51,7 @@ export declare class RequestsController {
         page: number;
         totalPages: number;
     }>;
-    getStats(): Promise<{
-        total: number;
-        pending: number;
-        approved: number;
-        rejected: number;
-    }>;
-    updateStatus(id: string, body: {
-        status: string;
-        adminNote?: string;
-    }): Promise<{
+    updateStatus(id: string, dto: UpdateRequestStatusDto): Promise<{
         id: string;
         description: string | null;
         createdAt: Date;

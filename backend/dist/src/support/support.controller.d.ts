@@ -1,12 +1,9 @@
 import { SupportService } from './support.service';
+import { CreateTicketDto, ReplyTicketDto, UpdateTicketStatusDto } from './dto/create-ticket.dto';
 export declare class SupportController {
     private service;
     constructor(service: SupportService);
-    create(user: any, body: {
-        subject: string;
-        message: string;
-        category?: string;
-    }): Promise<{
+    create(userId: string, dto: CreateTicketDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -17,7 +14,7 @@ export declare class SupportController {
         category: import(".prisma/client").$Enums.TicketCategory;
         adminReply: string | null;
     }>;
-    findMine(user: any): Promise<{
+    findMine(userId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -28,6 +25,13 @@ export declare class SupportController {
         category: import(".prisma/client").$Enums.TicketCategory;
         adminReply: string | null;
     }[]>;
+    getStats(): Promise<{
+        total: number;
+        open: number;
+        inProgress: number;
+        resolved: number;
+        closed: number;
+    }>;
     findAll(query: any): Promise<{
         tickets: ({
             user: {
@@ -48,17 +52,7 @@ export declare class SupportController {
         page: number;
         totalPages: number;
     }>;
-    getStats(): Promise<{
-        total: number;
-        open: number;
-        inProgress: number;
-        resolved: number;
-        closed: number;
-    }>;
-    reply(id: string, body: {
-        adminReply: string;
-        status?: string;
-    }): Promise<{
+    reply(id: string, dto: ReplyTicketDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -69,9 +63,7 @@ export declare class SupportController {
         category: import(".prisma/client").$Enums.TicketCategory;
         adminReply: string | null;
     }>;
-    updateStatus(id: string, body: {
-        status: string;
-    }): Promise<{
+    updateStatus(id: string, dto: UpdateTicketStatusDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;

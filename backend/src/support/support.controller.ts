@@ -6,6 +6,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 import { SupportService } from './support.service';
+import { CreateTicketDto, ReplyTicketDto, UpdateTicketStatusDto } from './dto/create-ticket.dto';
 
 @ApiTags('Support')
 @ApiBearerAuth('access-token')
@@ -14,27 +15,16 @@ import { SupportService } from './support.service';
 export class SupportController {
   constructor(private service: SupportService) {}
 
-  // User: create ticket
   @Post()
-  create(@CurrentUser() user: any, @Body() body: { subject: string; message: string; category?: string }) {
-    return this.service.create(user.id, body);
+  create(@CurrentUser('id') userId: string, @Body() dto: CreateTicketDto) {
+    return this.service.create(userId, dto);
   }
 
-  // User: view own tickets
   @Get('my')
-  findMine(@CurrentUser() user: any) {
-    return this.service.findByUser(user.id);
+  findMine(@CurrentUser('id') userId: string) {
+    return this.service.findByUser(userId);
   }
 
-  // Admin: view all tickets
-  @Get()
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  findAll(@Query() query: any) {
-    return this.service.findAll(query);
-  }
-
-  // Admin: stats
   @Get('stats')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
@@ -42,19 +32,24 @@ export class SupportController {
     return this.service.getStats();
   }
 
-  // Admin: reply to ticket
+  @Get()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  findAll(@Query() query: any) {
+    return this.service.findAll(query);
+  }
+
   @Patch(':id/reply')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  reply(@Param('id') id: string, @Body() body: { adminReply: string; status?: string }) {
-    return this.service.reply(id, body.adminReply, body.status);
+  reply(@Param('id') id: string, @Body() dto: ReplyTicketDto) {
+    return this.service.reply(id, dto.adminReply, dto.status);
   }
 
-  // Admin: update status
   @Patch(':id/status')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
-    return this.service.updateStatus(id, body.status);
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateTicketStatusDto) {
+    return this.service.updateStatus(id, dto.status);
   }
 }

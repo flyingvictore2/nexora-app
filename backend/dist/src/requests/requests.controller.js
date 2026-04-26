@@ -21,42 +21,51 @@ const roles_decorator_1 = require("../common/decorators/roles.decorator");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 const client_1 = require("@prisma/client");
 const requests_service_1 = require("./requests.service");
+const create_request_dto_1 = require("./dto/create-request.dto");
 let RequestsController = class RequestsController {
     constructor(service) {
         this.service = service;
     }
-    create(user, body) {
-        return this.service.create(user.id, body);
+    create(userId, dto) {
+        return this.service.create(userId, dto);
     }
-    findMine(user) {
-        return this.service.findByUser(user.id);
-    }
-    findAll(query) {
-        return this.service.findAll(query);
+    findMine(userId) {
+        return this.service.findByUser(userId);
     }
     getStats() {
         return this.service.getStats();
     }
-    updateStatus(id, body) {
-        return this.service.updateStatus(id, body.status, body.adminNote);
+    findAll(query) {
+        return this.service.findAll(query);
+    }
+    updateStatus(id, dto) {
+        return this.service.updateStatus(id, dto.status, dto.adminNote);
     }
 };
 exports.RequestsController = RequestsController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(0, (0, current_user_decorator_1.CurrentUser)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [String, create_request_dto_1.CreateRequestDto]),
     __metadata("design:returntype", void 0)
 ], RequestsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('my'),
-    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(0, (0, current_user_decorator_1.CurrentUser)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], RequestsController.prototype, "findMine", null);
+__decorate([
+    (0, common_1.Get)('stats'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], RequestsController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)(),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
@@ -67,21 +76,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RequestsController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)('stats'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], RequestsController.prototype, "getStats", null);
-__decorate([
     (0, common_1.Patch)(':id/status'),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, create_request_dto_1.UpdateRequestStatusDto]),
     __metadata("design:returntype", void 0)
 ], RequestsController.prototype, "updateStatus", null);
 exports.RequestsController = RequestsController = __decorate([
