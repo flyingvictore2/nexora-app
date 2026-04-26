@@ -8,7 +8,7 @@ COPY . .
 # Install deps — postinstall (prisma generate) can now find the schema
 RUN npm ci
 
-# Build: prisma generate + nest build
+# Build: prisma generate + nest build (v1.1.0 — requests+support)
 RUN npm run build
 
 EXPOSE 4000
