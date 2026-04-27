@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, Loader2, AlertTriangle, Eye, EyeOff, Globe } from 'lucide-react';
+import { Save, Loader2, AlertTriangle, Eye, EyeOff, Globe, CreditCard, Zap, Crown, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -184,6 +184,9 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
+        {/* Plans */}
+        <PlansToggleSection />
+
         {/* Save */}
         <button
           onClick={() => saveMutation.mutate()}
@@ -195,5 +198,97 @@ export default function AdminSettingsPage() {
         </button>
       </div>
     </AdminLayout>
+  );
+}
+
+const planIcons: Record<string, any> = { FREE: Star, PREMIUM: Zap, VIP: Crown };
+const planColors: Record<string, string> = {
+  FREE: 'text-gray-400',
+  PREMIUM: 'text-nexora-red',
+  VIP: 'text-yellow-400',
+};
+
+function PlansToggleSection() {
+  const qc = useQueryClient();
+
+  const { data: plans = [], isLoading } = useQuery({
+    queryKey: ['admin-plans-all'],
+    queryFn: async () => {
+      const res = await api.get('/subscriptions/plans/all');
+      return res.data?.data ?? [];
+    },
+  });
+
+  const togglePlan = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      api.put(`/subscriptions/plans/${id}`, { isActive }),
+    onSuccess: (_, { isActive }) => {
+      qc.invalidateQueries({ queryKey: ['admin-plans-all'] });
+      qc.invalidateQueries({ queryKey: ['admin-plans'] });
+      qc.invalidateQueries({ queryKey: ['plans'] });
+      toast.success(isActive ? 'Plan activado' : 'Plan desactivado');
+    },
+    onError: () => toast.error('Error al cambiar el estado del plan'),
+  });
+
+  return (
+    <section className="bg-nexora-dark-2 border border-white/10 rounded-xl p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <CreditCard className="w-5 h-5 text-nexora-red" />
+        <h2 className="font-semibold text-lg">Activar / Desactivar planes</h2>
+      </div>
+      <p className="text-xs text-gray-400">Los planes desactivados no aparecerán en la página de suscripciones ni podrán contratarse.</p>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => <div key={i} className="h-14 skeleton rounded-lg" />)}
+        </div>
+      ) : plans.length === 0 ? (
+        <p className="text-sm text-gray-500 py-4 text-center">No hay planes creados.</p>
+      ) : (
+        <div className="space-y-3">
+          {plans.map((plan: any) => {
+            const Icon = planIcons[plan.planType] || Star;
+            const colorClass = planColors[plan.planType] || 'text-gray-400';
+            const isPending = togglePlan.isPending && (togglePlan.variables as any)?.id === plan.id;
+
+            return (
+              <div key={plan.id} className="flex items-center justify-between p-4 bg-nexora-dark-3 rounded-xl border border-white/5">
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-5 h-5 ${colorClass}`} />
+                  <div>
+                    <p className="font-semibold text-sm">{plan.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {plan.price === 0 ? 'Gratis' : `${plan.price} ${plan.currency || 'USD'}/mes`}
+                      {' · '}
+                      <span className={plan.isActive ? 'text-green-400' : 'text-red-400'}>
+                        {plan.isActive ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  disabled={isPending}
+                  onClick={() => togglePlan.mutate({ id: plan.id, isActive: !plan.isActive })}
+                  className={cn(
+                    'relative w-12 h-6 rounded-full transition-colors disabled:opacity-50',
+                    plan.isActive ? 'bg-green-500' : 'bg-white/20',
+                  )}
+                >
+                  {isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin absolute top-1.5 left-4 text-white" />
+                  ) : (
+                    <span className={cn(
+                      'absolute top-1 w-4 h-4 bg-white rounded-full transition-transform',
+                      plan.isActive ? 'translate-x-7' : 'translate-x-1',
+                    )} />
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }

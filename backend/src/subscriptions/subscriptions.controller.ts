@@ -21,6 +21,13 @@ export class SubscriptionsController {
     return this.service.getPlans();
   }
 
+  @Get('plans/all')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  getAllPlans() {
+    return this.service.getAllPlans();
+  }
+
   @Get('plans/:id')
   @Public()
   getPlan(@Param('id') id: string) {

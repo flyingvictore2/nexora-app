@@ -13,6 +13,10 @@ export class SubscriptionsService {
     });
   }
 
+  async getAllPlans() {
+    return this.prisma.plan.findMany({ orderBy: { price: 'asc' } });
+  }
+
   async getPlanById(id: string) {
     const plan = await this.prisma.plan.findUnique({ where: { id } });
     if (!plan) throw new NotFoundException('Plan not found');
