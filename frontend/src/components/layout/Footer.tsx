@@ -49,7 +49,7 @@ export function Footer() {
           <div className="flex flex-wrap gap-3">
             {/* Windows */}
             <a
-              href="https://github.com/flyingvictore2/nexora-app/releases/latest/download/Nexora-Setup-1.0.0.exe"
+              href="https://github.com/flyingvictore2/nexora-app/releases/latest/download/Nexora.Setup.1.0.0.exe"
               className="flex items-center gap-3 bg-white/5 border border-white/10 hover:border-nexora-red hover:bg-nexora-red/10 rounded-xl px-4 py-3 transition-colors relative group"
             >
               <Monitor className="w-6 h-6 text-white flex-shrink-0" />

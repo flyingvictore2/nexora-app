@@ -142,7 +142,7 @@ export default function LoginPage() {
             <p className="text-xs text-gray-500 text-center mb-3">Próximamente en</p>
             <div className="flex justify-center gap-3">
               <a
-                href="https://github.com/flyingvictore2/nexora-app/releases/latest/download/Nexora-Setup-1.0.0.exe"
+                href="https://github.com/flyingvictore2/nexora-app/releases/latest/download/Nexora.Setup.1.0.0.exe"
                 className="flex items-center gap-2 bg-white/5 border border-white/10 hover:border-nexora-red rounded-lg px-3 py-2 transition-colors"
               >
                 <Monitor className="w-4 h-4 text-gray-300" />
