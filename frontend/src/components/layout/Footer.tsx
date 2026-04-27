@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Youtube, Monitor, Smartphone } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -40,6 +40,31 @@ export function Footer() {
             <Link href="#" className="block hover:text-white transition-colors">Ayuda</Link>
             <Link href="#" className="block hover:text-white transition-colors">Empleos</Link>
             <Link href="#" className="block hover:text-white transition-colors">Contacto</Link>
+          </div>
+        </div>
+
+        {/* Download section */}
+        <div className="border-t border-white/5 pt-8 mb-8">
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Disponible próximamente en</p>
+          <div className="flex flex-wrap gap-3">
+            {/* Windows */}
+            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 opacity-60 cursor-not-allowed select-none relative">
+              <span className="absolute -top-2 -right-2 bg-nexora-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Pronto</span>
+              <Monitor className="w-6 h-6 text-white flex-shrink-0" />
+              <div>
+                <p className="text-[10px] text-gray-400 leading-none mb-0.5">Descarga para</p>
+                <p className="text-sm font-semibold text-white leading-none">Windows</p>
+              </div>
+            </div>
+            {/* Android */}
+            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 opacity-60 cursor-not-allowed select-none relative">
+              <span className="absolute -top-2 -right-2 bg-nexora-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Pronto</span>
+              <Smartphone className="w-6 h-6 text-white flex-shrink-0" />
+              <div>
+                <p className="text-[10px] text-gray-400 leading-none mb-0.5">Descarga para</p>
+                <p className="text-sm font-semibold text-white leading-none">Android</p>
+              </div>
+            </div>
           </div>
         </div>
 
