@@ -14,6 +14,7 @@ import {
   useDeleteNotification,
 } from '@/hooks/useNotifications';
 import { cn, formatDate } from '@/lib/utils';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const typeIcon: Record<string, string> = {
   subscription: '💳',
@@ -33,6 +34,7 @@ export function Navbar() {
   const { user, activeProfile, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const pathname = usePathname();
+  const { isHidden } = useSiteSettings();
   const { data: unreadCount = 0 } = useUnreadCount();
   const { data: notifications = [] } = useNotifications();
   const markAllRead = useMarkAllRead();
@@ -88,64 +90,51 @@ export function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/"
-              className={cn('text-sm transition-colors', pathname === '/' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-            >
-              Inicio
-            </Link>
+            {!isHidden('browse') && (
+              <Link href="/" className={cn('text-sm transition-colors', pathname === '/' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                Inicio
+              </Link>
+            )}
             {user && (
               <>
-                <Link
-                  href="/browse?type=SERIES"
-                  className={cn('text-sm transition-colors', pathname === '/browse' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-                >
-                  Series
-                </Link>
-                <Link
-                  href="/browse?type=MOVIE"
-                  className={cn('text-sm transition-colors', pathname === '/browse' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-                >
-                  Películas
-                </Link>
-                <Link
-                  href="/browse?type=ANIME"
-                  className={cn('text-sm transition-colors', pathname === '/browse' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-                >
-                  Anime
-                </Link>
-                <Link
-                  href="/browse/new"
-                  className={cn('text-sm transition-colors', pathname === '/browse/new' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-                >
-                  Novedades
-                </Link>
-                <Link
-                  href="/my-list"
-                  className={cn('text-sm transition-colors', pathname === '/my-list' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-                >
-                  Mi Lista
-                </Link>
-                <Link
-                  href="/requests"
-                  className={cn('text-sm transition-colors', pathname === '/requests' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-                >
-                  Solicitudes
-                </Link>
-                <Link
-                  href="/support"
-                  className={cn('text-sm transition-colors', pathname === '/support' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-                >
-                  Soporte
-                </Link>
+                {!isHidden('browse') && (
+                  <>
+                    <Link href="/browse?type=SERIES" className={cn('text-sm transition-colors', pathname === '/browse' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                      Series
+                    </Link>
+                    <Link href="/browse?type=MOVIE" className={cn('text-sm transition-colors', pathname === '/browse' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                      Películas
+                    </Link>
+                    <Link href="/browse?type=ANIME" className={cn('text-sm transition-colors', pathname === '/browse' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                      Anime
+                    </Link>
+                    <Link href="/my-list" className={cn('text-sm transition-colors', pathname === '/my-list' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                      Mi Lista
+                    </Link>
+                  </>
+                )}
+                {!isHidden('new') && (
+                  <Link href="/browse/new" className={cn('text-sm transition-colors', pathname === '/browse/new' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                    Novedades
+                  </Link>
+                )}
+                {!isHidden('requests') && (
+                  <Link href="/requests" className={cn('text-sm transition-colors', pathname === '/requests' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                    Solicitudes
+                  </Link>
+                )}
+                {!isHidden('support') && (
+                  <Link href="/support" className={cn('text-sm transition-colors', pathname === '/support' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                    Soporte
+                  </Link>
+                )}
               </>
             )}
-            <Link
-              href="/subscription/plans"
-              className={cn('text-sm transition-colors', pathname === '/subscription/plans' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}
-            >
-              Planes
-            </Link>
+            {!isHidden('plans') && (
+              <Link href="/subscription/plans" className={cn('text-sm transition-colors', pathname === '/subscription/plans' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                Planes
+              </Link>
+            )}
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import { Navbar } from '@/components/layout/Navbar';
 import { PaymentModal } from '@/components/payments/PaymentModal';
 import { useAuthStore } from '@/store/auth.store';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import Link from 'next/link';
 
 const planIcons = { FREE: Star, PREMIUM: Zap, VIP: Crown };
@@ -24,6 +25,7 @@ const planGlow = {
 
 export default function PlansPage() {
   const { isAuthenticated } = useAuthStore();
+  const { currency } = useSiteSettings();
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
 
   const { data: plans = [], isLoading } = useQuery({
@@ -95,7 +97,7 @@ export default function PlansPage() {
                         <span className="text-4xl font-black">Gratis</span>
                       ) : (
                         <>
-                          <span className="text-4xl font-black">{formatCurrency(plan.price)}</span>
+                          <span className="text-4xl font-black">{formatCurrency(plan.price, currency)}</span>
                           <span className="text-gray-400 text-sm">/mes</span>
                         </>
                       )}
@@ -166,7 +168,7 @@ export default function PlansPage() {
                           : 'bg-nexora-red hover:bg-nexora-red-dark',
                       )}
                     >
-                      {plan.trialDays > 0 ? `Probar ${plan.trialDays} días gratis` : `Suscribirse por ${formatCurrency(plan.price)}/mes`}
+                      {plan.trialDays > 0 ? `Probar ${plan.trialDays} días gratis` : `Suscribirse por ${formatCurrency(plan.price, currency)}/mes`}
                     </button>
                   )}
                 </div>

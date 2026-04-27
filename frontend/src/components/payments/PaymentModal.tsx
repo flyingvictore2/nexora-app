@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface Props {
   plan: {
@@ -24,6 +25,7 @@ type Tab = 'card' | 'paypal';
 export function PaymentModal({ plan, onClose }: Props) {
   const [tab, setTab] = useState<Tab>('card');
   const qc = useQueryClient();
+  const { currency } = useSiteSettings();
 
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
 
@@ -69,8 +71,8 @@ export function PaymentModal({ plan, onClose }: Props) {
             <h2 className="text-lg font-bold">Suscribirse a {plan.name}</h2>
             <p className="text-sm text-gray-400">
               {plan.trialDays > 0
-                ? `${plan.trialDays} días gratis, luego $${plan.price}/mes`
-                : `$${plan.price}/mes`}
+                ? `${plan.trialDays} días gratis, luego ${plan.price} ${currency}/mes`
+                : `${plan.price} ${currency}/mes`}
             </p>
           </div>
           <button
