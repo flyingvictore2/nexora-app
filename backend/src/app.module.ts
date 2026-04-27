@@ -24,6 +24,7 @@ import { RequestsModule } from './requests/requests.module';
 import { SupportModule } from './support/support.module';
 import { SettingsModule } from './settings/settings.module';
 import { ListsModule } from './lists/lists.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { ListsModule } from './lists/lists.module';
     SupportModule,
     SettingsModule,
     ListsModule,
+    AiModule,
   ],
 })
 export class AppModule {}

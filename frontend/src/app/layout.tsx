@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { MaintenanceGate } from '@/components/MaintenanceGate';
+import { AiChat } from '@/components/ai/AiChat';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <head />
       <body className={`${inter.className} bg-nexora-dark text-white min-h-screen`}>
-        <Providers><MaintenanceGate>{children}</MaintenanceGate></Providers>
+        <Providers><MaintenanceGate>{children}</MaintenanceGate><AiChat /></Providers>
       </body>
     </html>
   );
