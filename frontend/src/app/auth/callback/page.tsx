@@ -4,10 +4,12 @@ import { Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/store/auth.store';
 
 function CallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { refreshUser } = useAuthStore();
 
   useEffect(() => {
     const accessToken = searchParams.get('accessToken');
@@ -15,7 +17,10 @@ function CallbackContent() {
     if (accessToken && refreshToken) {
       Cookies.set('accessToken', accessToken, { expires: 1 });
       Cookies.set('refreshToken', refreshToken, { expires: 7 });
-      router.push('/profiles');
+      // Populate the auth store with user data so isAuthenticated = true
+      refreshUser().then(() => {
+        router.push('/profiles');
+      });
     } else {
       router.push('/auth/login?error=oauth_failed');
     }
