@@ -1,25 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
 interface ChatMessage {
-  role: 'user' | 'model';
+  role: 'user' | 'assistant';
   content: string;
 }
 
 @Injectable()
 export class AiService {
-  private genAI: GoogleGenerativeAI;
+  private groq: Groq;
 
   constructor(
     private config: ConfigService,
     private prisma: PrismaService,
   ) {
-    this.genAI = new GoogleGenerativeAI(config.get('GEMINI_API_KEY', ''));
+    this.groq = new Groq({ apiKey: config.get('GROQ_API_KEY', '') });
   }
 
-  async chat(message: string, history: ChatMessage[], profileId?: string) {
+  async chat(message: string, history: { role: 'user' | 'model'; content: string }[], profileId?: string) {
     // Fetch top-rated content for context
     const catalog = await this.prisma.content.findMany({
       take: 80,
@@ -28,7 +28,7 @@ export class AiService {
       orderBy: { averageRating: 'desc' },
     });
 
-    // Fetch user watch history for personalization (renamed to avoid shadowing)
+    // Fetch user watch history for personalization
     let watchedTitles: string[] = [];
     if (profileId) {
       const watched = await this.prisma.watchHistory.findMany({
@@ -65,19 +65,25 @@ REGLAS:
 - Usa emojis con moderación
 - Si el usuario pregunta algo sin relación con entretenimiento, redirige la conversación amablemente`;
 
-    const model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: systemPrompt,
+    // Convert history (Gemini uses 'model', Groq uses 'assistant')
+    const messages: ChatMessage[] = [
+      ...history.map((msg) => ({
+        role: (msg.role === 'model' ? 'assistant' : 'user') as 'user' | 'assistant',
+        content: msg.content,
+      })),
+      { role: 'user', content: message },
+    ];
+
+    const completion = await this.groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages,
+      ],
+      max_tokens: 1024,
+      temperature: 0.7,
     });
 
-    // Convert history to Gemini format
-    const geminiHistory = history.map((msg) => ({
-      role: msg.role,
-      parts: [{ text: msg.content }],
-    }));
-
-    const chat = model.startChat({ history: geminiHistory });
-    const result = await chat.sendMessage(message);
-    return { reply: result.response.text() };
+    return { reply: completion.choices[0]?.message?.content ?? '' };
   }
 }
