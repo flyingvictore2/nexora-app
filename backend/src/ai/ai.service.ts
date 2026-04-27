@@ -20,52 +20,50 @@ export class AiService {
   }
 
   async chat(message: string, history: ChatMessage[], profileId?: string) {
-    // Fetch a sample of available content for context
-    const content = await this.prisma.content.findMany({
+    // Fetch top-rated content for context
+    const catalog = await this.prisma.content.findMany({
       take: 80,
       where: { isPublished: true },
-      select: { title: true, type: true, genres: true, releaseYear: true, description: true },
+      select: { title: true, type: true, genres: true, releaseYear: true },
       orderBy: { averageRating: 'desc' },
     });
 
-    // Fetch user watch history for personalization
+    // Fetch user watch history for personalization (renamed to avoid shadowing)
     let watchedTitles: string[] = [];
     if (profileId) {
-      const history = await this.prisma.watchHistory.findMany({
+      const watched = await this.prisma.watchHistory.findMany({
         where: { profileId },
         take: 20,
         orderBy: { watchedAt: 'desc' },
-        include: { content: { select: { title: true, genres: true } } },
+        include: { content: { select: { title: true } } },
       });
-      watchedTitles = history.map((h) => h.content.title);
+      watchedTitles = watched.map((w) => w.content.title);
     }
 
-    const catalogSummary = content
-      .map((c) => `- ${c.title} (${c.type}, ${c.releaseYear}, géneros: ${c.genres?.join(', ')})`)
+    const catalogSummary = catalog
+      .map((c) => `- ${c.title} (${c.type}, ${c.releaseYear}, géneros: ${(c.genres ?? []).join(', ')})`)
       .join('\n');
 
     const systemPrompt = `Eres Nex, el asistente de inteligencia artificial de Nexora, una plataforma de streaming.
 Tu personalidad es amigable, entusiasta del cine y las series, y siempre útil.
 
 CATÁLOGO DISPONIBLE EN NEXORA:
-${catalogSummary}
+${catalogSummary || 'Catálogo en actualización.'}
 
 ${watchedTitles.length > 0 ? `EL USUARIO HA VISTO RECIENTEMENTE: ${watchedTitles.join(', ')}` : ''}
 
 TUS CAPACIDADES:
 1. Recomendar películas y series del catálogo según gustos, estado de ánimo o géneros
-2. Ayudar a encontrar contenido específico ("quiero algo de terror", "una comedia romántica")
+2. Ayudar a encontrar contenido ("quiero algo de terror", "una comedia romántica")
 3. Responder preguntas sobre películas y series en general
-4. Dar información sobre géneros, directores, actores
-5. Sugerir qué ver según lo que el usuario ha disfrutado antes
+4. Sugerir qué ver según lo que el usuario ha disfrutado antes
 
-REGLAS IMPORTANTES:
+REGLAS:
 - Responde siempre en español
 - Sé conciso pero útil (máximo 3-4 párrafos)
-- Cuando recomiendes contenido, menciona títulos concretos del catálogo si están disponibles
-- Si no tienes algo en el catálogo, dilo y sugiere alternativas similares que sí estén
-- Usa emojis con moderación para hacer la conversación más amena
-- Si el usuario pregunta algo que no tiene relación con entretenimiento, redirige amablemente la conversación`;
+- Cuando recomiendes, menciona títulos concretos del catálogo si están disponibles
+- Usa emojis con moderación
+- Si el usuario pregunta algo sin relación con entretenimiento, redirige la conversación amablemente`;
 
     const model = this.genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
