@@ -45,9 +45,9 @@ export function Footer() {
 
         {/* Download section */}
         <div className="border-t border-white/5 pt-8 mb-8">
-          <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Disponible próximamente en</p>
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Descarga la app</p>
           <div className="flex flex-wrap gap-3">
-            {/* Windows */}
+            {/* Windows — coming soon */}
             <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 opacity-60 cursor-not-allowed select-none relative">
               <span className="absolute -top-2 -right-2 bg-nexora-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Pronto</span>
               <Monitor className="w-6 h-6 text-white flex-shrink-0" />
@@ -56,15 +56,17 @@ export function Footer() {
                 <p className="text-sm font-semibold text-white leading-none">Windows</p>
               </div>
             </div>
-            {/* Android */}
-            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 opacity-60 cursor-not-allowed select-none relative">
-              <span className="absolute -top-2 -right-2 bg-nexora-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Pronto</span>
+            {/* Android — available */}
+            <a
+              href="https://github.com/flyingvictore2/nexora-app/releases/latest/download/nexora.apk"
+              className="flex items-center gap-3 bg-white/5 border border-white/10 hover:border-nexora-red hover:bg-nexora-red/10 rounded-xl px-4 py-3 transition-colors relative group"
+            >
               <Smartphone className="w-6 h-6 text-white flex-shrink-0" />
               <div>
-                <p className="text-[10px] text-gray-400 leading-none mb-0.5">Descarga para</p>
+                <p className="text-[10px] text-gray-400 leading-none mb-0.5 group-hover:text-gray-300">Descarga para</p>
                 <p className="text-sm font-semibold text-white leading-none">Android</p>
               </div>
-            </div>
+            </a>
           </div>
         </div>
 
