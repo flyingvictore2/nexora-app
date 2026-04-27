@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   build:
@@ -30,6 +30,10 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Generate Capacitor Android files
+        working-directory: frontend
+        run: npx cap sync android --no-build
 
       - name: Make gradlew executable
         working-directory: frontend/android
@@ -58,10 +62,9 @@ jobs:
           name: Nexora ${{ github.ref_name }}
           body: |
             ## Nexora para Android ${{ github.ref_name }}
-
             ### Instalación
-            1. Descarga el archivo `nexora.apk`
-            2. En tu Android, ve a **Ajustes → Seguridad → Fuentes desconocidas** y actívalo
-            3. Abre el APK descargado e instala
+            1. Descarga `nexora.apk`
+            2. En Android: **Ajustes → Seguridad → Instalar apps desconocidas** → actívalo
+            3. Abre el APK e instala
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
