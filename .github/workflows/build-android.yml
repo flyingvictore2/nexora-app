@@ -33,7 +33,7 @@ jobs:
 
       - name: Generate Capacitor Android files
         working-directory: frontend
-        run: npx cap sync android --no-build
+        run: mkdir -p out && npx cap sync android
 
       - name: Make gradlew executable
         working-directory: frontend/android
