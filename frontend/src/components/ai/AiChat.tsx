@@ -67,10 +67,11 @@ export function AiChat() {
         history: messages,
       });
       setMessages([...newMessages, { role: 'model', content: res.data.data?.reply ?? res.data?.reply }]);
-    } catch {
+    } catch (err: any) {
+      const detail = err?.response?.data?.message ?? err?.message ?? 'Error desconocido';
       setMessages([...newMessages, {
         role: 'model',
-        content: 'Lo siento, hubo un error al procesar tu mensaje. Inténtalo de nuevo 😓',
+        content: `Error: ${detail} 😓`,
       }]);
     } finally {
       setLoading(false);
