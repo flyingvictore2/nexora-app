@@ -47,15 +47,17 @@ export function Footer() {
         <div className="border-t border-white/5 pt-8 mb-8">
           <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Descarga la app</p>
           <div className="flex flex-wrap gap-3">
-            {/* Windows — coming soon */}
-            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 opacity-60 cursor-not-allowed select-none relative">
-              <span className="absolute -top-2 -right-2 bg-nexora-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Pronto</span>
+            {/* Windows */}
+            <a
+              href="https://github.com/flyingvictore2/nexora-app/releases/latest/download/Nexora-Setup-1.0.0.exe"
+              className="flex items-center gap-3 bg-white/5 border border-white/10 hover:border-nexora-red hover:bg-nexora-red/10 rounded-xl px-4 py-3 transition-colors relative group"
+            >
               <Monitor className="w-6 h-6 text-white flex-shrink-0" />
               <div>
-                <p className="text-[10px] text-gray-400 leading-none mb-0.5">Descarga para</p>
+                <p className="text-[10px] text-gray-400 leading-none mb-0.5 group-hover:text-gray-300">Descarga para</p>
                 <p className="text-sm font-semibold text-white leading-none">Windows</p>
               </div>
-            </div>
+            </a>
             {/* Android — available */}
             <a
               href="https://github.com/flyingvictore2/nexora-app/releases/latest/download/nexora.apk"

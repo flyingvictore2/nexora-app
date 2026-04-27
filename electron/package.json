@@ -1,0 +1,28 @@
+{
+  "name": "nexora-desktop",
+  "version": "1.0.0",
+  "description": "Nexora Streaming - App de escritorio",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --publish never"
+  },
+  "build": {
+    "appId": "app.nexora.desktop",
+    "productName": "Nexora",
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false
+    },
+    "files": ["main.js", "preload.js", "icon.ico"]
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}
