@@ -66,7 +66,7 @@ REGLAS:
 - Si el usuario pregunta algo sin relación con entretenimiento, redirige la conversación amablemente`;
 
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       systemInstruction: systemPrompt,
     });
 
