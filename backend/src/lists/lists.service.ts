@@ -44,7 +44,7 @@ export class ListsService {
   async createList(profileId: string, name: string, emoji = '📋') {
     return this.prisma.userList.create({
       data: { profileId, name, emoji },
-      include: { _count: { select: { items: true } }, items: [] },
+      include: { _count: { select: { items: true } }, items: true },
     });
   }
 

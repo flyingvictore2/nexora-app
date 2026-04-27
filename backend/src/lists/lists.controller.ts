@@ -24,6 +24,15 @@ export class ListsController {
     return this.service.createList(profileId, name, emoji);
   }
 
+  // Must be before /:id so "content" is not treated as an id
+  @Get('content/:contentId')
+  getContentLists(
+    @Param('contentId') contentId: string,
+    @Headers('x-profile-id') profileId: string,
+  ) {
+    return this.service.getContentLists(contentId, profileId);
+  }
+
   @Get(':id')
   getList(@Param('id') id: string, @Headers('x-profile-id') profileId: string) {
     return this.service.getList(id, profileId);
@@ -59,13 +68,5 @@ export class ListsController {
     @Headers('x-profile-id') profileId: string,
   ) {
     return this.service.removeItem(listId, contentId, profileId);
-  }
-
-  @Get('content/:contentId')
-  getContentLists(
-    @Param('contentId') contentId: string,
-    @Headers('x-profile-id') profileId: string,
-  ) {
-    return this.service.getContentLists(contentId, profileId);
   }
 }
