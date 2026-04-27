@@ -82,6 +82,7 @@ model Profile {
   watchHistory WatchHistory[]
   ratings      Rating[]
   favorites    Favorite[]
+  userLists    UserList[]
 
   @@index([userId])
 }
@@ -123,6 +124,7 @@ model Content {
   watchHistory WatchHistory[]
   ratings      Rating[]
   favorites    Favorite[]
+  listItems    UserListItem[]
 
   @@index([type])
   @@index([isFeatured])
@@ -298,6 +300,33 @@ model Favorite {
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, contentId])
+}
+
+model UserList {
+  id        String   @id @default(cuid())
+  profileId String
+  name      String
+  emoji     String   @default("📋")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  items   UserListItem[]
+
+  @@index([profileId])
+}
+
+model UserListItem {
+  id        String   @id @default(cuid())
+  listId    String
+  contentId String
+  addedAt   DateTime @default(now())
+
+  list    UserList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  content Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, contentId])
+  @@index([listId])
 }
 
 enum RequestStatus {

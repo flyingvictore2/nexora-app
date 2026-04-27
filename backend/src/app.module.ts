@@ -23,6 +23,7 @@ import { HealthModule } from './health/health.module';
 import { RequestsModule } from './requests/requests.module';
 import { SupportModule } from './support/support.module';
 import { SettingsModule } from './settings/settings.module';
+import { ListsModule } from './lists/lists.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { SettingsModule } from './settings/settings.module';
     RequestsModule,
     SupportModule,
     SettingsModule,
+    ListsModule,
   ],
 })
 export class AppModule {}

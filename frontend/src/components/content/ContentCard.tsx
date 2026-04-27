@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Play, Plus, ThumbsUp, ChevronDown, Star } from 'lucide-react';
+import { Play, Plus, ThumbsUp, ChevronDown, Star, ListPlus, Check, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatDuration, getMaturityColor } from '@/lib/utils';
 import { useFavoriteToggle } from '@/hooks/useContent';
+import { useContentLists, useAddToList, useRemoveFromList } from '@/hooks/useLists';
 
 interface ContentCardProps {
   content: {
@@ -25,8 +26,72 @@ interface ContentCardProps {
   showProgress?: number;
 }
 
+/* ─── Add-to-list dropdown ──────────────────────────────────── */
+function AddToListDropdown({ contentId, onClose }: { contentId: string; onClose: () => void }) {
+  const { data: lists, isLoading } = useContentLists(contentId);
+  const { mutate: addToList, isPending: adding } = useAddToList();
+  const { mutate: removeFromList, isPending: removing } = useRemoveFromList();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  if (isLoading) {
+    return (
+      <div ref={ref} className="absolute right-0 bottom-10 z-30 bg-nexora-dark border border-white/10 rounded-lg shadow-xl py-3 px-4 min-w-[180px] flex items-center gap-2">
+        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+        <span className="text-sm text-gray-400">Cargando listas…</span>
+      </div>
+    );
+  }
+
+  if (!lists || lists.length === 0) {
+    return (
+      <div ref={ref} className="absolute right-0 bottom-10 z-30 bg-nexora-dark border border-white/10 rounded-lg shadow-xl py-3 px-4 min-w-[180px]">
+        <p className="text-xs text-gray-400 text-center">Sin listas. Crea una en Mi Lista.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={ref} className="absolute right-0 bottom-10 z-30 bg-nexora-dark border border-white/10 rounded-lg shadow-xl py-1 min-w-[190px]">
+      <p className="text-xs text-gray-500 px-3 pt-1.5 pb-1">Añadir a lista</p>
+      {lists.map((list: any) => {
+        const inList = list.hasContent;
+        const busy = adding || removing;
+        return (
+          <button
+            key={list.id}
+            disabled={busy}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (inList) {
+                removeFromList({ listId: list.id, contentId });
+              } else {
+                addToList({ listId: list.id, contentId });
+              }
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-white/5 text-left transition-colors disabled:opacity-60"
+          >
+            <span className="text-base">{list.emoji}</span>
+            <span className="flex-1 truncate">{list.name}</span>
+            {inList && <Check className="w-3.5 h-3.5 text-nexora-red flex-shrink-0" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ContentCard({ content, size = 'md', showProgress }: ContentCardProps) {
   const [hovered, setHovered] = useState(false);
+  const [showLists, setShowLists] = useState(false);
   const { mutate: toggleFavorite } = useFavoriteToggle();
 
   const sizeClasses = {
@@ -39,7 +104,7 @@ export function ContentCard({ content, size = 'md', showProgress }: ContentCardP
     <motion.div
       className={cn('relative flex-shrink-0 rounded overflow-hidden group', sizeClasses[size])}
       onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
+      onHoverEnd={() => { setHovered(false); setShowLists(false); }}
       layout
     >
       {/* Poster */}
@@ -121,9 +186,38 @@ export function ContentCard({ content, size = 'md', showProgress }: ContentCardP
                 <button
                   onClick={(e) => { e.preventDefault(); toggleFavorite(content.id); }}
                   className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center hover:border-white flex-shrink-0"
+                  title="Favoritos"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
+                {/* Add to list */}
+                <div className="relative flex-shrink-0">
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowLists((v) => !v); }}
+                    className={cn(
+                      'w-8 h-8 rounded-full border flex items-center justify-center transition-colors',
+                      showLists ? 'border-nexora-red text-nexora-red' : 'border-white/40 hover:border-white',
+                    )}
+                    title="Añadir a lista"
+                  >
+                    <ListPlus className="w-4 h-4" />
+                  </button>
+                  <AnimatePresence>
+                    {showLists && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.1 }}
+                      >
+                        <AddToListDropdown
+                          contentId={content.id}
+                          onClose={() => setShowLists(false)}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
                 <button className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center hover:border-white flex-shrink-0">
                   <ThumbsUp className="w-4 h-4" />
                 </button>
