@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Monitor, Smartphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -136,6 +136,23 @@ export default function LoginPage() {
               Regístrate ahora
             </Link>
           </p>
+
+          {/* App download */}
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <p className="text-xs text-gray-500 text-center mb-3">Próximamente en</p>
+            <div className="flex justify-center gap-3">
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 opacity-50 cursor-not-allowed relative">
+                <span className="absolute -top-2 -right-1 bg-nexora-red text-white text-[9px] font-bold px-1 py-0.5 rounded-full leading-none">Pronto</span>
+                <Monitor className="w-4 h-4 text-gray-300" />
+                <span className="text-xs text-gray-300 font-medium">Windows</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 opacity-50 cursor-not-allowed relative">
+                <span className="absolute -top-2 -right-1 bg-nexora-red text-white text-[9px] font-bold px-1 py-0.5 rounded-full leading-none">Pronto</span>
+                <Smartphone className="w-4 h-4 text-gray-300" />
+                <span className="text-xs text-gray-300 font-medium">Android</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
