@@ -8,6 +8,7 @@ import {
   Settings, LogOut, Menu, X, ChevronRight, Bell,
   Inbox, HeadphonesIcon,
 } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -19,6 +20,7 @@ const navItems = [
   { href: '/admin/subscriptions', label: 'Planes', icon: CreditCard },
   { href: '/admin/requests', label: 'Solicitudes', icon: Inbox },
   { href: '/admin/support', label: 'Soporte', icon: HeadphonesIcon },
+  { href: '/admin/settings', label: 'Configuración', icon: Settings },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

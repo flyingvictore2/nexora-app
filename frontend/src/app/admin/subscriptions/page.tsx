@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit, Plus, Check, Loader2, DollarSign } from 'lucide-react';
+import { Edit, Plus, Trash2, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -12,6 +12,7 @@ export default function AdminSubscriptionsPage() {
   const qc = useQueryClient();
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const { data: plans = [], isLoading } = useQuery({
     queryKey: ['admin-plans'],
@@ -35,6 +36,25 @@ export default function AdminSubscriptionsPage() {
       toast.success('Plan actualizado');
       setEditingPlan(null);
     },
+  });
+
+  const createPlan = useMutation({
+    mutationFn: (data: any) => api.post('/subscriptions/plans', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-plans'] });
+      toast.success('Plan creado');
+      setShowCreateForm(false);
+    },
+    onError: () => toast.error('Error al crear el plan'),
+  });
+
+  const deletePlan = useMutation({
+    mutationFn: (id: string) => api.delete(`/subscriptions/plans/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-plans'] });
+      toast.success('Plan eliminado');
+    },
+    onError: () => toast.error('Error al eliminar el plan'),
   });
 
   const planColors: Record<string, string> = {
@@ -82,8 +102,17 @@ export default function AdminSubscriptionsPage() {
           </div>
         )}
 
-        {/* Plans */}
-        <h2 className="text-lg font-semibold">Planes activos</h2>
+        {/* Plans header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Planes activos</h2>
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-nexora-red hover:bg-nexora-red-dark text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo plan
+          </button>
+        </div>
         <div className="grid md:grid-cols-3 gap-6">
           {isLoading
             ? Array.from({ length: 3 }).map((_, i) => (
@@ -102,12 +131,22 @@ export default function AdminSubscriptionsPage() {
                         {plan.price > 0 && <span className="text-sm font-normal text-gray-400">/mes</span>}
                       </p>
                     </div>
-                    <button
-                      onClick={() => { setEditingPlan(plan); setShowForm(true); }}
-                      className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => { setEditingPlan(plan); setShowForm(true); }}
+                        className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`¿Eliminar el plan "${plan.name}"?`)) deletePlan.mutate(plan.id);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-2 text-sm border-t border-white/10 pt-3 mt-3">
@@ -150,6 +189,15 @@ export default function AdminSubscriptionsPage() {
         </div>
       </div>
 
+      {/* Create Plan Modal */}
+      {showCreateForm && (
+        <PlanCreateModal
+          onClose={() => setShowCreateForm(false)}
+          onSave={(data) => createPlan.mutate(data)}
+          isSaving={createPlan.isPending}
+        />
+      )}
+
       {/* Edit Plan Modal */}
       {showForm && editingPlan && (
         <PlanEditModal
@@ -160,6 +208,129 @@ export default function AdminSubscriptionsPage() {
         />
       )}
     </AdminLayout>
+  );
+}
+
+function PlanCreateModal({ onClose, onSave, isSaving }: any) {
+  const [form, setForm] = useState({
+    name: '',
+    planType: 'PREMIUM',
+    price: 9.99,
+    currency: 'USD',
+    description: '',
+    features: [] as string[],
+    maxProfiles: 2,
+    maxDevices: 2,
+    videoQuality: 'HD',
+    hasDownloads: false,
+    trialDays: 0,
+    isActive: true,
+  });
+  const [featureInput, setFeatureInput] = useState('');
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="w-full max-w-md bg-nexora-dark-2 border border-white/10 rounded-xl shadow-2xl my-4">
+        <div className="flex items-center justify-between p-5 border-b border-white/10">
+          <h3 className="font-bold">Crear nuevo plan</h3>
+          <button onClick={onClose}>✕</button>
+        </div>
+
+        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Nombre</label>
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm" placeholder="Premium Plus" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Tipo</label>
+              <select value={form.planType} onChange={(e) => setForm({ ...form, planType: e.target.value })}
+                className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm">
+                {['FREE', 'PREMIUM', 'VIP'].map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Precio/mes</label>
+              <input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })}
+                className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Moneda</label>
+              <select value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm">
+                {['USD', 'EUR', 'MXN', 'ARS', 'COP', 'CLP', 'PEN', 'BRL', 'GBP'].map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Máx. perfiles</label>
+              <input type="number" value={form.maxProfiles} onChange={(e) => setForm({ ...form, maxProfiles: parseInt(e.target.value) })}
+                className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Máx. dispositivos</label>
+              <input type="number" value={form.maxDevices} onChange={(e) => setForm({ ...form, maxDevices: parseInt(e.target.value) })}
+                className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Calidad de video</label>
+              <select value={form.videoQuality} onChange={(e) => setForm({ ...form, videoQuality: e.target.value })}
+                className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm">
+                {['SD', 'HD', '4K'].map((q) => <option key={q} value={q}>{q}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Días de prueba</label>
+              <input type="number" value={form.trialDays} onChange={(e) => setForm({ ...form, trialDays: parseInt(e.target.value) })}
+                className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Descripción</label>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={2} className="w-full bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm resize-none" />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Características</label>
+            <div className="flex gap-2 mb-2">
+              <input value={featureInput} onChange={(e) => setFeatureInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && featureInput.trim()) { setForm({ ...form, features: [...form.features, featureInput.trim()] }); setFeatureInput(''); }}}
+                placeholder="Escribe y pulsa Enter" className="flex-1 bg-nexora-dark-3 border border-white/20 rounded px-3 py-2 text-sm" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {form.features.map((f, i) => (
+                <span key={i} className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded">
+                  {f}
+                  <button onClick={() => setForm({ ...form, features: form.features.filter((_, j) => j !== i) })} className="text-gray-400 hover:text-red-400">✕</button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.hasDownloads} onChange={(e) => setForm({ ...form, hasDownloads: e.target.checked })} className="accent-nexora-red" />
+              <span className="text-sm">Descargas</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="accent-nexora-red" />
+              <span className="text-sm">Activo</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="flex gap-3 p-5 border-t border-white/10">
+          <button onClick={onClose} className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm">Cancelar</button>
+          <button onClick={() => onSave(form)} disabled={isSaving || !form.name}
+            className="flex-1 flex items-center justify-center gap-2 py-2 bg-nexora-red hover:bg-nexora-red-dark text-white rounded-lg text-sm font-medium disabled:opacity-60">
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+            Crear plan
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -186,7 +357,7 @@ function PlanEditModal({ plan, onClose, onSave, isSaving }: any) {
         <div className="p-5 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Precio (USD/mes)</label>
+              <label className="block text-xs text-gray-400 mb-1">Precio/mes</label>
               <input
                 type="number"
                 step="0.01"

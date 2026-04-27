@@ -22,6 +22,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { HealthModule } from './health/health.module';
 import { RequestsModule } from './requests/requests.module';
 import { SupportModule } from './support/support.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { SupportModule } from './support/support.module';
     HealthModule,
     RequestsModule,
     SupportModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}

@@ -51,6 +51,18 @@ export class SubscriptionsService {
     return this.prisma.plan.update({ where: { id }, data });
   }
 
+  async deletePlan(id: string) {
+    await this.getPlanById(id);
+    const activeCount = await this.prisma.subscription.count({
+      where: { planId: id, status: { in: ['ACTIVE', 'TRIAL'] } },
+    });
+    if (activeCount > 0) {
+      // Soft delete — keep plan but mark inactive
+      return this.prisma.plan.update({ where: { id }, data: { isActive: false } });
+    }
+    return this.prisma.plan.delete({ where: { id } });
+  }
+
   async cancelSubscription(userId: string) {
     const sub = await this.getUserSubscription(userId);
     return this.prisma.subscription.update({
