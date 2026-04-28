@@ -7,7 +7,7 @@ import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   SkipForward, Settings, Subtitles, ChevronLeft, Loader2, PictureInPicture2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, detectVideoType } from '@/lib/utils';
 import { useUpdateProgress } from '@/hooks/useContent';
 
 interface Subtitle {
@@ -63,6 +63,9 @@ export function VideoPlayer({
   externalPlaying,
   topBarExtra,
 }: VideoPlayerProps) {
+  // Resolve type from URL pattern first — explicit prop is a hint, URL wins for known providers
+  const resolvedType = detectVideoType(videoUrl, videoType);
+
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const controlsTimeoutRef = useRef<any>(null);
@@ -117,7 +120,7 @@ export function VideoPlayer({
       sources: [
         {
           src: videoUrl,
-          type: videoType === 'HLS' || videoUrl.includes('.m3u8')
+          type: resolvedType === 'HLS' || videoUrl.includes('.m3u8')
             ? 'application/x-mpegURL'
             : 'video/mp4',
         },
@@ -293,7 +296,7 @@ export function VideoPlayer({
   const progressPercent = videoDuration > 0 ? (currentTime / videoDuration) * 100 : 0;
 
   /* ── Iframe embed player ─────────────────────────────────────── */
-  if (videoType === 'EMBED') {
+  if (resolvedType === 'EMBED') {
     return (
       <div className="relative bg-black w-full h-full flex flex-col">
         {/* Top bar — fades after 3 s of no movement */}

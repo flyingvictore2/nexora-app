@@ -39,6 +39,58 @@ export function truncate(str: string, length: number): string {
   return str.slice(0, length) + '...';
 }
 
+// Known embed/iframe video hosting providers
+const EMBED_DOMAINS = [
+  'lulustream.com', 'luluvdo.com',
+  'voe.sx', 'voe.la',
+  'streamtape.com', 'streamtape.net',
+  'doodstream.com', 'dood.la', 'dood.to', 'dood.watch',
+  'mixdrop.co', 'mixdrop.to', 'mixdrop.ag',
+  'vidplay.online', 'vidplay.site',
+  'filemoon.sx', 'filemoon.in',
+  'mycloud.vip', 'mcloud.to',
+  'upstream.to',
+  'fembed.com',
+  'ok.ru/videoembed',
+  'sibnet.ru/shell',
+  'mp4upload.com/embed',
+  'sendvid.com',
+  'vidmoly.to',
+  'vtbe.to',
+  'fplayer.info',
+  'abysscdn.com',
+];
+
+/**
+ * Detects the correct video source type from a URL.
+ * Explicit `hint` takes priority; URL pattern is the fallback.
+ */
+export function detectVideoType(
+  url: string,
+  hint?: string,
+): 'DIRECT' | 'EMBED' | 'HLS' {
+  if (!url) return 'DIRECT';
+  if (hint === 'EMBED') return 'EMBED';
+  if (hint === 'HLS') return 'HLS';
+
+  const lower = url.toLowerCase();
+
+  // HLS
+  if (lower.includes('.m3u8') || lower.includes('m3u8') || lower.includes('/hls/')) return 'HLS';
+
+  // Embed providers
+  if (EMBED_DOMAINS.some((d) => lower.includes(d))) return 'EMBED';
+
+  // Generic embed patterns: /e/, /embed/, /player/
+  if (/\/(e|embed|player|v|video)\/[a-z0-9]/i.test(url) && !lower.endsWith('.mp4') && !lower.endsWith('.webm')) {
+    // Extra check: not a CDN direct file
+    if (!lower.match(/\.(mp4|webm|ogg|avi|mov)(\?|$)/)) return 'EMBED';
+  }
+
+  if (hint === 'DIRECT') return 'DIRECT';
+  return 'DIRECT';
+}
+
 export function getMaturityColor(rating: string): string {
   const colors: Record<string, string> = {
     'G': 'bg-green-600',

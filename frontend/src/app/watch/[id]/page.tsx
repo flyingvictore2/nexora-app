@@ -8,7 +8,7 @@ import { ContentRow } from '@/components/content/ContentRow';
 import { WatchPartyPanel } from '@/components/watch-party/WatchPartyPanel';
 import { DownloadButton } from '@/components/content/DownloadButton';
 import { Star, Plus, Play, Clock, Globe, Loader2, Server, ChevronDown } from 'lucide-react';
-import { cn, formatDuration, getMaturityColor } from '@/lib/utils';
+import { cn, formatDuration, getMaturityColor, detectVideoType } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { useFavoriteToggle, useRateContent } from '@/hooks/useContent';
 import toast from 'react-hot-toast';
@@ -96,8 +96,10 @@ export default function WatchPage() {
   })();
 
   const activeSource = availableSources[selectedSourceIdx] || availableSources[0];
-  const videoUrl = activeSource?.url || signedUrl?.url || content.videoUrl || '';
-  const videoType: 'DIRECT' | 'EMBED' | 'HLS' = activeSource?.type || 'DIRECT';
+  const rawUrl = activeSource?.url || signedUrl?.url || content.videoUrl || '';
+  // Auto-detect type from URL; explicit metadata hint takes priority
+  const videoType = detectVideoType(rawUrl, activeSource?.type);
+  const videoUrl = rawUrl;
 
   const handlePlayEpisode = (epId: string) => {
     setSelectedEpisode(epId);
