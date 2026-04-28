@@ -96,9 +96,11 @@ export default function WatchPage() {
   })();
 
   const activeSource = availableSources[selectedSourceIdx] || availableSources[0];
+  // If activeSource exists use it; otherwise fall back to signedUrl (which now includes type)
   const rawUrl = activeSource?.url || signedUrl?.url || content.videoUrl || '';
-  // Auto-detect type from URL; explicit metadata hint takes priority
-  const videoType = detectVideoType(rawUrl, activeSource?.type);
+  const typeHint = activeSource?.type || (signedUrl as any)?.type;
+  // Auto-detect from URL pattern — explicit hint only wins for EMBED/HLS, never overrides domain detection
+  const videoType = detectVideoType(rawUrl, typeHint);
   const videoUrl = rawUrl;
 
   const handlePlayEpisode = (epId: string) => {

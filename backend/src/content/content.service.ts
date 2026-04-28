@@ -99,11 +99,38 @@ export class ContentService {
     }
 
     let videoUrl = content.videoUrl;
+    let videoType: string = 'DIRECT';
+
     if (episodeId) {
-      const episode = await this.prisma.episode.findUnique({ where: { id: episodeId } });
+      const episode = await this.prisma.episode.findUnique({
+        where: { id: episodeId },
+        include: { videoSources: { orderBy: [{ isDefault: 'desc' }, { order: 'asc' }], take: 1 } },
+      });
       if (!episode) throw new NotFoundException('Episode not found');
-      videoUrl = episode.videoUrl;
+      if (episode.videoSources?.length) {
+        videoUrl = episode.videoSources[0].url;
+        videoType = episode.videoSources[0].type;
+      } else {
+        videoUrl = episode.videoUrl;
+      }
+    } else {
+      // For movies: prefer VideoSource over videoUrl
+      try {
+        const sources = await this.prisma.videoSource.findMany({
+          where: { contentId },
+          orderBy: [{ isDefault: 'desc' }, { order: 'asc' }],
+          take: 1,
+        });
+        if (sources.length) {
+          videoUrl = sources[0].url;
+          videoType = sources[0].type;
+        }
+      } catch {
+        // VideoSource table may not exist yet — fall back to content.videoUrl
+      }
     }
+
+    if (!videoUrl) throw new NotFoundException('No video source found for this content');
 
     // Generate signed URL (HMAC-based time-limited token)
     const secret = this.config.get('SIGNED_URL_SECRET', 'default_secret');
@@ -115,6 +142,7 @@ export class ContentService {
 
     return {
       url: videoUrl,
+      type: videoType,
       signedToken: signature,
       expiresAt: new Date(expiry),
     };

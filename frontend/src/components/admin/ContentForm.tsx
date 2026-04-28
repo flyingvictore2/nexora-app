@@ -333,10 +333,17 @@ export function ContentForm({ content, onClose, onSuccess }: ContentFormProps) {
         genres: data.genres ? data.genres.split(',').map((g) => g.trim()).filter(Boolean) : [],
         cast: data.cast ? data.cast.split(',').map((c) => c.trim()).filter(Boolean) : [],
       };
-      // Remove fields that must be undefined (not null) for class-validator @IsOptional to skip them
-      delete payload.videoUrl;
       if (!payload.scheduledAt) delete payload.scheduledAt;
       else payload.scheduledAt = new Date(payload.scheduledAt).toISOString();
+
+      // For movies: also store the first source URL in videoUrl as fallback
+      // (used by getSignedUrl and legacy code paths)
+      if (data.type === 'MOVIE') {
+        const firstSrc = movieSources.find((s) => s.url);
+        payload.videoUrl = firstSrc?.url || null;
+      } else {
+        delete payload.videoUrl;
+      }
 
       let contentId = content?.id;
 
