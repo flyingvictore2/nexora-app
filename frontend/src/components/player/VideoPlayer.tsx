@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import {
@@ -37,7 +37,7 @@ interface VideoPlayerProps {
   externalSeek?: number;
   externalSeekSeq?: number;
   externalPlaying?: boolean;
-  topBarExtra?: React.ReactNode;
+  topBarExtra?: ReactNode;
 }
 
 export function VideoPlayer({
