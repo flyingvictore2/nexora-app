@@ -87,6 +87,8 @@ export function VideoPlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [quality, setQuality] = useState('auto');
   const [isPiP, setIsPiP] = useState(false);
+  // If Video.js fails and URL looks like an embed, switch to iframe automatically
+  const [forcedEmbed, setForcedEmbed] = useState(false);
 
   const { mutate: updateProgress } = useUpdateProgress();
 
@@ -175,7 +177,13 @@ export function VideoPlayer({
     player.on('fullscreenchange', () => {
       setIsFullscreen(player.isFullscreen());
     });
-    player.on('error', (e: any) => console.error('Player error:', e));
+    player.on('error', (e: any) => {
+      console.error('Player error:', e);
+      // If the URL is not a plain video file (e.g. embed page), switch to iframe
+      const url = videoUrl.toLowerCase();
+      const isLikelyEmbed = !url.match(/\.(mp4|webm|ogg|mov|avi|mkv|m3u8)(\?|$)/) && url.startsWith('http');
+      if (isLikelyEmbed) setForcedEmbed(true);
+    });
 
     // Auto-save progress every 15s
     progressSaveRef.current = setInterval(() => {
@@ -296,7 +304,7 @@ export function VideoPlayer({
   const progressPercent = videoDuration > 0 ? (currentTime / videoDuration) * 100 : 0;
 
   /* ── Iframe embed player ─────────────────────────────────────── */
-  if (resolvedType === 'EMBED') {
+  if (resolvedType === 'EMBED' || forcedEmbed) {
     return (
       <div className="relative bg-black w-full h-full flex flex-col">
         {/* Top bar — fades after 3 s of no movement */}

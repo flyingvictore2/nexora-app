@@ -11,7 +11,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import { cn } from '@/lib/utils';
+import { cn, detectVideoType } from '@/lib/utils';
 
 /* ─── Types ──────────────────────────────────────────────────── */
 
@@ -99,6 +99,13 @@ function SourceRow({
   isFirst: boolean;
 }) {
   const inputCls = 'bg-nexora-dark border border-white/20 rounded px-2 py-1.5 text-xs focus:border-nexora-red w-full';
+
+  const handleUrlChange = (url: string) => {
+    // Auto-detect type from URL so user doesn't have to set it manually
+    const detected = detectVideoType(url);
+    onChange({ ...source, url, type: detected });
+  };
+
   return (
     <div className="flex gap-2 items-start bg-white/5 rounded-lg p-2">
       <div className="flex-1 grid grid-cols-2 gap-2">
@@ -112,7 +119,17 @@ function SourceRow({
           />
         </div>
         <div>
-          <label className="text-[10px] text-gray-500 mb-0.5 block">Tipo</label>
+          <label className="text-[10px] text-gray-500 mb-0.5 block">
+            Tipo
+            <span className={cn(
+              'ml-1.5 px-1 py-0.5 rounded text-[9px] font-bold',
+              source.type === 'EMBED' ? 'bg-blue-500/30 text-blue-300' :
+              source.type === 'HLS' ? 'bg-purple-500/30 text-purple-300' :
+              'bg-green-500/30 text-green-300',
+            )}>
+              {source.type === 'EMBED' ? 'iframe' : source.type === 'HLS' ? 'HLS' : 'MP4'}
+            </span>
+          </label>
           <select
             value={source.type}
             onChange={(e) => onChange({ ...source, type: e.target.value as SourceType })}
@@ -124,11 +141,22 @@ function SourceRow({
           </select>
         </div>
         <div className="col-span-2">
-          <label className="text-[10px] text-gray-500 mb-0.5 block">URL</label>
+          <label className="text-[10px] text-gray-500 mb-0.5 block">
+            URL
+            {source.type === 'EMBED' && (
+              <span className="ml-1 text-blue-400">· se detecta automáticamente</span>
+            )}
+          </label>
           <input
             value={source.url}
-            onChange={(e) => onChange({ ...source, url: e.target.value })}
-            placeholder={source.type === 'EMBED' ? 'https://lulustream.com/e/...' : 'https://cdn.example.com/video.mp4'}
+            onChange={(e) => handleUrlChange(e.target.value)}
+            placeholder={
+              source.type === 'EMBED'
+                ? 'https://lulustream.com/e/... · voe.sx/e/... · streamtape.com/v/...'
+                : source.type === 'HLS'
+                ? 'https://cdn.example.com/video.m3u8'
+                : 'https://cdn.example.com/video.mp4'
+            }
             className={cn(inputCls, 'font-mono')}
           />
         </div>
