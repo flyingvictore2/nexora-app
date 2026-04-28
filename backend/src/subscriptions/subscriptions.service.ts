@@ -67,6 +67,37 @@ export class SubscriptionsService {
     return this.prisma.plan.delete({ where: { id } });
   }
 
+  async getAllUserSubscriptions(page = 1, limit = 20, status?: string) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (status) where.status = status;
+
+    const [subscriptions, total] = await Promise.all([
+      this.prisma.subscription.findMany({
+        where,
+        include: {
+          user: { select: { id: true, email: true, name: true, avatar: true } },
+          plan: { select: { name: true, planType: true, price: true, currency: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.subscription.count({ where }),
+    ]);
+
+    return { subscriptions, total, page, totalPages: Math.ceil(total / limit) };
+  }
+
+  async adminCancelSubscription(subscriptionId: string) {
+    const sub = await this.prisma.subscription.findUnique({ where: { id: subscriptionId } });
+    if (!sub) throw new Error('Subscription not found');
+    return this.prisma.subscription.update({
+      where: { id: subscriptionId },
+      data: { status: 'CANCELLED', cancelAtPeriodEnd: true },
+    });
+  }
+
   async cancelSubscription(userId: string) {
     const sub = await this.getUserSubscription(userId);
     return this.prisma.subscription.update({

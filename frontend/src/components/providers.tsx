@@ -15,13 +15,13 @@ const queryClient = new QueryClient({
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const { theme } = useThemeStore();
+  const { theme, initTheme } = useThemeStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+    initTheme();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

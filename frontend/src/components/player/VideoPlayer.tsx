@@ -5,7 +5,7 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
-  SkipForward, Settings, Subtitles, ChevronLeft, Loader2,
+  SkipForward, Settings, Subtitles, ChevronLeft, Loader2, PictureInPicture2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUpdateProgress } from '@/hooks/useContent';
@@ -81,6 +81,7 @@ export function VideoPlayer({
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [quality, setQuality] = useState('auto');
+  const [isPiP, setIsPiP] = useState(false);
 
   const { mutate: updateProgress } = useUpdateProgress();
 
@@ -224,6 +225,23 @@ export function VideoPlayer({
     const t = parseFloat(e.target.value);
     if (playerRef.current) playerRef.current.currentTime(t);
     setCurrentTime(t);
+  };
+
+  const togglePiP = async () => {
+    try {
+      const videoEl = playerRef.current?.tech(true)?.el() as HTMLVideoElement | undefined;
+      if (!videoEl) return;
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiP(false);
+      } else {
+        await videoEl.requestPictureInPicture();
+        setIsPiP(true);
+        videoEl.addEventListener('leavepictureinpicture', () => setIsPiP(false), { once: true });
+      }
+    } catch (e) {
+      console.warn('PiP not supported', e);
+    }
   };
 
   const toggleFullscreen = () => {
@@ -456,6 +474,17 @@ export function VideoPlayer({
                   </div>
                 )}
               </div>
+
+              {/* Picture-in-Picture */}
+              {'pictureInPictureEnabled' in document && (
+                <button
+                  onClick={togglePiP}
+                  title="Picture in Picture"
+                  className={cn('p-2 hover:text-gray-300 transition-colors', isPiP && 'text-nexora-red')}
+                >
+                  <PictureInPicture2 className="w-5 h-5" />
+                </button>
+              )}
 
               {/* Fullscreen */}
               <button onClick={toggleFullscreen} className="p-2 hover:text-gray-300 transition-colors">

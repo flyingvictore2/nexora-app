@@ -2,17 +2,32 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit, Plus, Trash2, Loader2 } from 'lucide-react';
+import { Edit, Plus, Trash2, Loader2, Users, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, formatDate, cn } from '@/lib/utils';
 
 export default function AdminSubscriptionsPage() {
   const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState<'plans' | 'users'>('plans');
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [userSubsPage, setUserSubsPage] = useState(1);
+  const [userSubsStatus, setUserSubsStatus] = useState('');
+
+  const { data: userSubs } = useQuery({
+    queryKey: ['admin-user-subs', userSubsPage, userSubsStatus],
+    queryFn: async () => (await api.get(`/subscriptions/admin/all?page=${userSubsPage}&limit=15${userSubsStatus ? `&status=${userSubsStatus}` : ''}`)).data.data,
+    enabled: activeTab === 'users',
+  });
+
+  const cancelUserSub = useMutation({
+    mutationFn: (id: string) => api.post(`/subscriptions/admin/${id}/cancel`),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-user-subs'] }); toast.success('Suscripción cancelada'); },
+    onError: () => toast.error('Error al cancelar'),
+  });
 
   const { data: plans = [], isLoading } = useQuery({
     queryKey: ['admin-plans'],
@@ -66,10 +81,104 @@ export default function AdminSubscriptionsPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Gestión de Planes</h1>
-          <p className="text-gray-400 text-sm mt-1">Administra los planes de suscripción</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Suscripciones</h1>
+            <p className="text-gray-400 text-sm mt-1">Gestiona planes y suscripciones de usuarios</p>
+          </div>
         </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 bg-nexora-dark-2 border border-white/10 rounded-xl p-1 w-fit">
+          {([['plans', 'Planes'], ['users', 'Usuarios']] as const).map(([id, label]) => (
+            <button key={id} onClick={() => setActiveTab(id)}
+              className={cn('px-4 py-1.5 rounded-lg text-sm font-medium transition-colors', activeTab === id ? 'bg-nexora-red text-white' : 'text-gray-400 hover:text-white')}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* User subscriptions tab */}
+        {activeTab === 'users' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <select value={userSubsStatus} onChange={(e) => { setUserSubsStatus(e.target.value); setUserSubsPage(1); }}
+                className="bg-nexora-dark-3 border border-white/20 text-white text-sm px-3 py-2 rounded-lg">
+                <option value="">Todos los estados</option>
+                {['ACTIVE', 'TRIAL', 'CANCELLED', 'EXPIRED'].map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              {userSubs && <span className="text-sm text-gray-400">{userSubs.total} suscripciones</span>}
+            </div>
+
+            <div className="bg-nexora-dark-2 border border-white/10 rounded-xl overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-xs text-gray-400 uppercase border-b border-white/10">
+                    {['Usuario', 'Plan', 'Estado', 'Inicio', 'Fin', ''].map((h) => (
+                      <th key={h} className="px-4 py-3 font-medium">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {(userSubs?.subscriptions ?? []).map((s: any) => (
+                    <tr key={s.id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-nexora-red flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {(s.user?.name || s.user?.email || '?')[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{s.user?.name || '—'}</p>
+                            <p className="text-xs text-gray-400">{s.user?.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm">{s.plan?.name}</td>
+                      <td className="px-4 py-3">
+                        <span className={cn('text-xs px-2 py-1 rounded-full font-medium',
+                          s.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400' :
+                          s.status === 'TRIAL' ? 'bg-blue-500/20 text-blue-400' :
+                          s.status === 'CANCELLED' ? 'bg-red-500/20 text-red-400' :
+                          'bg-gray-500/20 text-gray-400')}>
+                          {s.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-400">{formatDate(s.currentPeriodStart)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-400">{formatDate(s.currentPeriodEnd)}</td>
+                      <td className="px-4 py-3">
+                        {s.status === 'ACTIVE' && (
+                          <button
+                            onClick={() => { if (confirm('¿Cancelar esta suscripción?')) cancelUserSub.mutate(s.id); }}
+                            className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors"
+                          >
+                            <XCircle className="w-3.5 h-3.5" /> Cancelar
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {userSubs?.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                <button onClick={() => setUserSubsPage((p) => Math.max(1, p - 1))} disabled={userSubsPage === 1}
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-lg disabled:opacity-40">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-sm text-gray-400">Pág. {userSubsPage} / {userSubs.totalPages}</span>
+                <button onClick={() => setUserSubsPage((p) => Math.min(userSubs.totalPages, p + 1))} disabled={userSubsPage === userSubs.totalPages}
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-lg disabled:opacity-40">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'plans' && (<>
 
         {/* Revenue stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -187,6 +296,7 @@ export default function AdminSubscriptionsPage() {
                 </div>
               ))}
         </div>
+        </>)}
       </div>
 
       {/* Create Plan Modal */}

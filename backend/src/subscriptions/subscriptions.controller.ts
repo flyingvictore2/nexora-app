@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -26,6 +26,25 @@ export class SubscriptionsController {
   @Roles(Role.ADMIN)
   getAllPlans() {
     return this.service.getAllPlans();
+  }
+
+  @Get('admin/all')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  getAllUserSubscriptions(
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+    @Query('status') status?: string,
+  ) {
+    return this.service.getAllUserSubscriptions(+page, +limit, status);
+  }
+
+  @Post('admin/:id/cancel')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  adminCancel(@Param('id') id: string) {
+    return this.service.adminCancelSubscription(id);
   }
 
   @Get('plans/:id')

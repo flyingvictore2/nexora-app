@@ -113,6 +113,23 @@ select:focus {
   transition: all 0.3s ease;
 }
 
+/* ─── Dynamic accent color ─────────────────────────────────────────────────
+   All Tailwind nexora-red utilities automatically use the CSS variable.
+   Changing --nexora-red at runtime re-themes the entire app.            */
+.bg-nexora-red   { background-color: var(--nexora-red) !important; }
+.text-nexora-red { color: var(--nexora-red) !important; }
+.border-nexora-red { border-color: var(--nexora-red) !important; }
+.fill-nexora-red { fill: var(--nexora-red) !important; }
+.ring-nexora-red { --tw-ring-color: var(--nexora-red) !important; }
+.from-nexora-red { --tw-gradient-from: var(--nexora-red) !important; }
+.accent-nexora-red { accent-color: var(--nexora-red) !important; }
+.hover\:bg-nexora-red:hover { background-color: var(--nexora-red) !important; }
+.hover\:text-nexora-red:hover { color: var(--nexora-red) !important; }
+.hover\:border-nexora-red:hover { border-color: var(--nexora-red) !important; }
+.focus\:border-nexora-red:focus { border-color: var(--nexora-red) !important; }
+.bg-nexora-red-dark, .hover\:bg-nexora-red-dark:hover,
+.hover\:bg-red-700:hover { background-color: var(--nexora-red-dark) !important; }
+
 /* Light mode */
 .light body {
   background-color: #f5f5f5;

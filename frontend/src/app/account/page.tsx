@@ -8,9 +8,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
-  User, CreditCard, Bell, Shield, Eye, EyeOff,
-  CheckCircle, Loader2, ExternalLink,
+  User, CreditCard, Shield, Eye, EyeOff,
+  CheckCircle, Loader2, ExternalLink, Palette,
 } from 'lucide-react';
+import { useThemeStore, ACCENT_COLORS } from '@/store/theme.store';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { formatDate, formatCurrency, cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ const tabs = [
   { id: 'subscription', label: 'Suscripción', icon: CreditCard },
   { id: 'security', label: 'Seguridad', icon: Shield },
   { id: 'payments', label: 'Pagos', icon: CreditCard },
+  { id: 'appearance', label: 'Apariencia', icon: Palette },
 ];
 
 export default function AccountPage() {
@@ -35,6 +37,7 @@ export default function AccountPage() {
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
   const { user, refreshUser } = useAuthStore();
+  const { accentColorId, setAccentColor } = useThemeStore();
 
   const { data: subscription } = useQuery({
     queryKey: ['my-subscription'],
@@ -304,6 +307,36 @@ export default function AccountPage() {
                     <p className="text-sm">Sin transacciones</p>
                   </div>
                 )}
+              </div>
+            )}
+            {activeTab === 'appearance' && (
+              <div className="space-y-6">
+                <div className="bg-nexora-dark-2 border border-white/10 rounded-xl p-6">
+                  <h2 className="font-semibold mb-1">Color de acento</h2>
+                  <p className="text-gray-400 text-sm mb-5">Cambia el color principal de la interfaz</p>
+                  <div className="flex flex-wrap gap-4">
+                    {ACCENT_COLORS.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => setAccentColor(c.id)}
+                        title={c.name}
+                        className={cn(
+                          'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all',
+                          accentColorId === c.id ? 'border-white scale-105' : 'border-transparent hover:border-white/30',
+                        )}
+                      >
+                        <div
+                          className="w-10 h-10 rounded-full shadow-lg"
+                          style={{ background: c.hex }}
+                        />
+                        <span className="text-xs text-gray-300">{c.name}</span>
+                        {accentColorId === c.id && (
+                          <CheckCircle className="w-4 h-4 text-white -mt-1" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>

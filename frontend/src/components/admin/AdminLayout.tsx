@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Film, Users, CreditCard, BarChart2,
   Settings, LogOut, Menu, X, ChevronRight, Bell,
-  Inbox, HeadphonesIcon,
+  Inbox, HeadphonesIcon, Tag,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -17,7 +17,8 @@ const navItems = [
   { href: '/admin/content', label: 'Contenido', icon: Film },
   { href: '/admin/users', label: 'Usuarios', icon: Users },
   { href: '/admin/analytics', label: 'Analíticas', icon: BarChart2 },
-  { href: '/admin/subscriptions', label: 'Planes', icon: CreditCard },
+  { href: '/admin/subscriptions', label: 'Suscripciones', icon: CreditCard },
+  { href: '/admin/coupons', label: 'Cupones', icon: Tag },
   { href: '/admin/requests', label: 'Solicitudes', icon: Inbox },
   { href: '/admin/support', label: 'Soporte', icon: HeadphonesIcon },
   { href: '/admin/settings', label: 'Configuración', icon: Settings },

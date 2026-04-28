@@ -14,6 +14,7 @@ interface ContentCardProps {
     title: string;
     posterUrl?: string;
     bannerUrl?: string;
+    trailerUrl?: string;
     type: string;
     releaseYear: number;
     genres?: string[];
@@ -92,6 +93,8 @@ function AddToListDropdown({ contentId, onClose }: { contentId: string; onClose:
 export function ContentCard({ content, size = 'md', showProgress }: ContentCardProps) {
   const [hovered, setHovered] = useState(false);
   const [showLists, setShowLists] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
+  const trailerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { mutate: toggleFavorite } = useFavoriteToggle();
 
   const sizeClasses = {
@@ -103,8 +106,18 @@ export function ContentCard({ content, size = 'md', showProgress }: ContentCardP
   return (
     <motion.div
       className={cn('relative flex-shrink-0 rounded overflow-hidden group', sizeClasses[size])}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => { setHovered(false); setShowLists(false); }}
+      onHoverStart={() => {
+        setHovered(true);
+        if (content.trailerUrl) {
+          trailerTimerRef.current = setTimeout(() => setShowTrailer(true), 1200);
+        }
+      }}
+      onHoverEnd={() => {
+        setHovered(false);
+        setShowLists(false);
+        setShowTrailer(false);
+        if (trailerTimerRef.current) clearTimeout(trailerTimerRef.current);
+      }}
       layout
     >
       {/* Poster */}
@@ -121,6 +134,18 @@ export function ContentCard({ content, size = 'md', showProgress }: ContentCardP
             <div className="w-full h-full flex items-center justify-center bg-nexora-dark-3">
               <span className="text-gray-500 text-center px-2 text-xs">{content.title}</span>
             </div>
+          )}
+
+          {/* Trailer autoplay */}
+          {showTrailer && content.trailerUrl && (
+            <video
+              src={content.trailerUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover z-10"
+            />
           )}
 
           {/* Progress bar */}
