@@ -6,7 +6,8 @@ import { useContentById, useSignedUrl, useSimilarContent } from '@/hooks/useCont
 import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { ContentRow } from '@/components/content/ContentRow';
 import { WatchPartyPanel } from '@/components/watch-party/WatchPartyPanel';
-import { Star, Plus, Play, Clock, Calendar, Globe, Film, Loader2 } from 'lucide-react';
+import { DownloadButton } from '@/components/content/DownloadButton';
+import { Star, Plus, Play, Clock, Globe, Loader2 } from 'lucide-react';
 import { cn, formatDuration, getMaturityColor } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { useFavoriteToggle, useRateContent } from '@/hooks/useContent';
@@ -256,6 +257,17 @@ export default function WatchPage() {
                 <Plus className="w-5 h-5" />
                 Mi lista
               </button>
+
+              {content.type === 'MOVIE' && (
+                <DownloadButton
+                  contentId={id}
+                  title={content.title}
+                  posterUrl={content.posterUrl}
+                  type={content.type}
+                  duration={content.duration}
+                  className="bg-white/10 border border-white/30 hover:bg-white/20 text-white px-6 py-3 rounded"
+                />
+              )}
             </div>
 
             {/* Rating */}
@@ -332,6 +344,19 @@ export default function WatchPage() {
                           <p className="text-gray-400 text-xs mt-0.5">{ep.duration}min</p>
                         )}
                       </div>
+                      <DownloadButton
+                        contentId={id}
+                        title={content.title}
+                        posterUrl={content.posterUrl}
+                        type={content.type}
+                        episodeId={ep.id}
+                        episodeTitle={ep.title}
+                        seasonNumber={currentSeason?.number}
+                        episodeNumber={ep.number}
+                        duration={ep.duration}
+                        iconOnly
+                        className="flex-shrink-0 p-1.5 bg-white/5 hover:bg-white/10 rounded-lg"
+                      />
                     </div>
                     {ep.description && (
                       <p className="text-gray-400 text-sm mt-1 line-clamp-2">{ep.description}</p>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, Bell, ChevronDown, Sun, Moon, Settings, LogOut, User, CheckCheck, Trash2, ArrowRight } from 'lucide-react';
+import { Search, Bell, ChevronDown, Sun, Moon, Settings, LogOut, User, CheckCheck, Trash2, ArrowRight, Download, X, Clock } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useThemeStore } from '@/store/theme.store';
 import {
@@ -30,6 +30,20 @@ export function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [profileMenu, setProfileMenu] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Search history helpers
+  const getHistory = (): string[] => {
+    try { return JSON.parse(localStorage.getItem('nexora-search-history') || '[]'); } catch { return []; }
+  };
+  const addToHistory = (q: string) => {
+    const prev = getHistory().filter((h) => h !== q);
+    localStorage.setItem('nexora-search-history', JSON.stringify([q, ...prev].slice(0, 8)));
+  };
+  const removeFromHistory = (q: string) => {
+    localStorage.setItem('nexora-search-history', JSON.stringify(getHistory().filter((h) => h !== q)));
+  };
+  const clearHistory = () => localStorage.removeItem('nexora-search-history');
 
   const { user, activeProfile, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
@@ -67,10 +81,20 @@ export function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      addToHistory(searchQuery.trim());
       router.push(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchOpen(false);
       setSearchQuery('');
+      setShowHistory(false);
     }
+  };
+
+  const handleHistoryClick = (q: string) => {
+    addToHistory(q);
+    router.push(`/browse?search=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+    setSearchQuery('');
+    setShowHistory(false);
   };
 
   return (
@@ -114,6 +138,9 @@ export function Navbar() {
                     <Link href="/social" className={cn('text-sm transition-colors', pathname === '/social' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
                       Social
                     </Link>
+                    <Link href="/downloads" className={cn('text-sm transition-colors', pathname === '/downloads' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                      Descargas
+                    </Link>
                   </>
                 )}
                 {!isHidden('new') && (
@@ -146,17 +173,49 @@ export function Navbar() {
           {/* Search */}
           <div className="relative flex items-center">
             {searchOpen ? (
-              <form onSubmit={handleSearch} className="flex items-center">
-                <input
-                  autoFocus
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar títulos, géneros..."
-                  className="bg-black/80 border border-white/30 text-white text-sm px-4 py-2 w-48 md:w-64 rounded-sm"
-                  onBlur={() => !searchQuery && setSearchOpen(false)}
-                />
-              </form>
+              <div className="relative">
+                <form onSubmit={handleSearch} className="flex items-center">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); setShowHistory(true); }}
+                    onFocus={() => setShowHistory(true)}
+                    onBlur={() => setTimeout(() => setShowHistory(false), 150)}
+                    placeholder="Buscar títulos, géneros..."
+                    className="bg-black/80 border border-white/30 text-white text-sm px-4 py-2 w-48 md:w-64 rounded-sm"
+                  />
+                </form>
+                {/* History dropdown */}
+                {showHistory && (
+                  <div className="absolute top-full left-0 mt-1 w-full bg-nexora-dark-2 border border-white/10 rounded-lg shadow-xl overflow-hidden z-50">
+                    {getHistory().length > 0 ? (
+                      <>
+                        <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/5">
+                          <span className="text-xs text-gray-500">Búsquedas recientes</span>
+                          <button onClick={clearHistory} className="text-[10px] text-gray-500 hover:text-white">Limpiar</button>
+                        </div>
+                        {getHistory()
+                          .filter((h) => !searchQuery || h.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .map((h) => (
+                            <div key={h} className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 cursor-pointer group">
+                              <Clock className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                              <span className="flex-1 text-sm text-gray-300 truncate" onClick={() => handleHistoryClick(h)}>{h}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); removeFromHistory(h); setShowHistory(false); setTimeout(() => setShowHistory(true), 10); }}
+                                className="opacity-0 group-hover:opacity-100 p-0.5 text-gray-600 hover:text-white"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                      </>
+                    ) : searchQuery.length === 0 ? (
+                      <p className="text-xs text-gray-500 text-center py-3">Sin búsquedas recientes</p>
+                    ) : null}
+                  </div>
+                )}
+              </div>
             ) : (
               <button onClick={() => setSearchOpen(true)} className="p-1 text-white hover:text-gray-300">
                 <Search className="w-5 h-5" />
@@ -294,6 +353,14 @@ export function Navbar() {
                       >
                         <User className="w-4 h-4" />
                         Cambiar perfil
+                      </Link>
+                      <Link
+                        href="/downloads"
+                        className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-white/10 rounded"
+                        onClick={() => setProfileMenu(false)}
+                      >
+                        <Download className="w-4 h-4" />
+                        Mis descargas
                       </Link>
                       <Link
                         href="/account"

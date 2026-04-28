@@ -11,8 +11,10 @@ export class ContentService {
     private config: ConfigService,
   ) {}
 
+  private readonly KIDS_SAFE_RATINGS = ['ALL', 'G', 'PG', 'TV-G', 'TV-Y', 'TV-Y7', '7+'];
+
   async findAll(query: ContentQueryDto) {
-    const { page = 1, limit = 20, search, type, genre, language, sortBy = 'createdAt', sortOrder = 'desc', isFeatured, isTrending } = query;
+    const { page = 1, limit = 20, search, type, genre, language, sortBy = 'createdAt', sortOrder = 'desc', isFeatured, isTrending, isKids } = query;
     const skip = (page - 1) * limit;
 
     const where: any = { isPublished: true };
@@ -29,6 +31,7 @@ export class ContentService {
     if (language) where.language = language;
     if (isFeatured !== undefined) where.isFeatured = isFeatured;
     if (isTrending !== undefined) where.isTrending = isTrending;
+    if (isKids) where.maturityRating = { in: this.KIDS_SAFE_RATINGS };
 
     // Only show scheduled content if release date has passed
     where.AND = [

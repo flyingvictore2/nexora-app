@@ -49,7 +49,32 @@
       "Bash(gh repo *)",
       "Bash(git rm *)",
       "Bash(git push *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(npx vercel *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://frontend-6naa98vt2-flyingvictor2006s-projects.vercel.app/browse/new\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://frontend-ashen-eta-86.vercel.app/browse/new\")",
+      "Bash(node scripts/generate-icon.js)",
+      "Bash(node scripts/create-icons.js)",
+      "Bash(npm run *)",
+      "Bash(set CSC_IDENTITY_AUTO_DISCOVERY=false)",
+      "Bash(npx electron-builder *)",
+      "Bash(npx electron-packager *)",
+      "Bash(Start-Process \"C:/nexora/launcher/dist/Nexora-win32-x64/Nexora.exe\")",
+      "Bash(npm start *)",
+      "Bash(node scripts/create-zip.js)",
+      "Bash(powershell -Command \"\\(Get-Item 'C:/nexora/launcher/dist/Nexora Setup 1.0.0.exe'\\).Length / 1MB\")",
+      "Bash(curl -s -X POST https://precious-charisma-production-b2c8.up.railway.app/api/v1/requests -H 'Content-Type: application/json' -d '{\"title\":\"Test\",\"type\":\"MOVIE\"}')",
+      "Bash(python3 -m json.tool)",
+      "Read(//c/Users/VICTOR/.railway/**)",
+      "Bash(curl -s -X POST https://backboard.railway.app/graphql/v2 -H 'Authorization: Bearer 19ca8670-4655-4559-9178-eb670b748716' -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s -X POST https://backboard.railway.app/graphql/v2 -H 'Authorization: Bearer 19ca8670-4655-4559-9178-eb670b748716' -H 'Content-Type: application/json' -d '{\"query\": \"{ me { projects { edges { node { id name } } } } }\"}')",
+      "Bash(curl -s https://backboard.railway.app/graphql/v2 -H 'Authorization: Bearer 19ca8670-4655-4559-9178-eb670b748716' -H 'Content-Type: application/json' -d '{\"query\":\"{ me { id email } }\"}')",
+      "Bash(RAILWAY_TOKEN=\"19ca8670-4655-4559-9178-eb670b748716\" railway whoami)",
+      "Bash(curl -s https://backboard.railway.app/graphql/v2 -H 'Authorization: Bearer 19ca8670-4655-4559-9178-eb670b748716' -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s \"https://precious-charisma-production-b2c8.up.railway.app/api/v1/health\")",
+      "Bash(curl -s \"https://precious-charisma-production-b2c8.up.railway.app/api/v1/requests/my\")",
+      "Bash(curl -s \"https://precious-charisma-production-b2c8.up.railway.app/api/v1/support/my\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\nexora\\\\.github\\\\workflows\")"
     ]
   }
 }

@@ -190,4 +190,10 @@ export class ContentQueryDto {
   @IsBoolean()
   @Transform(({ value }) => value === 'true' || value === true)
   isTrending?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  isKids?: boolean;
 }
