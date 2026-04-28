@@ -109,6 +109,7 @@ export default function WatchPage() {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
         <VideoPlayer
+          key={`${videoUrl}-${videoType}`}
           contentId={id}
           videoUrl={videoUrl}
           videoType={videoType}

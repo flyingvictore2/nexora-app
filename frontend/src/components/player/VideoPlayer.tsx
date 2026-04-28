@@ -117,7 +117,9 @@ export function VideoPlayer({
       sources: [
         {
           src: videoUrl,
-          type: videoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4',
+          type: videoType === 'HLS' || videoUrl.includes('.m3u8')
+            ? 'application/x-mpegURL'
+            : 'video/mp4',
         },
       ],
       tracks: subtitles.map((s) => ({
@@ -294,25 +296,39 @@ export function VideoPlayer({
   if (videoType === 'EMBED') {
     return (
       <div className="relative bg-black w-full h-full flex flex-col">
-        {/* Top bar */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center gap-3 px-4 py-3 bg-gradient-to-b from-black/80 to-transparent">
+        {/* Top bar — fades after 3 s of no movement */}
+        <div
+          className="absolute top-0 left-0 right-0 z-20 flex items-center gap-3 px-4 py-3 bg-gradient-to-b from-black/90 to-transparent pointer-events-none"
+          style={{ pointerEvents: 'auto' }}
+        >
           {onBack && (
-            <button onClick={onBack} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+            <button
+              onClick={onBack}
+              className="p-2 rounded-full bg-black/50 hover:bg-black/80 transition-colors flex-shrink-0"
+            >
               <ChevronLeft className="w-5 h-5" />
             </button>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">{title}</p>
-            {episodeTitle && <p className="text-xs text-gray-300 truncate">{episodeTitle}</p>}
+            <p className="text-sm font-semibold truncate drop-shadow">{title}</p>
+            {episodeTitle && (
+              <p className="text-xs text-gray-300 truncate drop-shadow">{episodeTitle}</p>
+            )}
           </div>
-          {topBarExtra}
+          {topBarExtra && (
+            <div className="flex items-center gap-2 flex-shrink-0">{topBarExtra}</div>
+          )}
         </div>
+
         <iframe
           src={videoUrl}
-          className="w-full h-full border-0"
+          className="w-full h-full border-0 flex-1"
           allowFullScreen
-          allow="autoplay; fullscreen; picture-in-picture"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-top-navigation-by-user-activation"
+          referrerPolicy="no-referrer-when-downgrade"
           title={episodeTitle || title}
+          loading="eager"
         />
       </div>
     );
