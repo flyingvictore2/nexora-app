@@ -333,6 +333,7 @@ export function ContentForm({ content, onClose, onSuccess }: ContentFormProps) {
         genres: data.genres ? data.genres.split(',').map((g) => g.trim()).filter(Boolean) : [],
         cast: data.cast ? data.cast.split(',').map((c) => c.trim()).filter(Boolean) : [],
         videoUrl: null,
+        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString() : null,
       };
 
       let contentId = content?.id;
