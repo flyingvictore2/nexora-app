@@ -111,6 +111,9 @@ export function Navbar() {
                     <Link href="/my-list" className={cn('text-sm transition-colors', pathname === '/my-list' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
                       Mi Lista
                     </Link>
+                    <Link href="/social" className={cn('text-sm transition-colors', pathname === '/social' ? 'text-white font-medium' : 'text-gray-300 hover:text-white')}>
+                      Social
+                    </Link>
                   </>
                 )}
                 {!isHidden('new') && (

@@ -41,6 +41,8 @@ enum PaymentStatus {
 model User {
   id                   String    @id @default(cuid())
   email                String    @unique
+  name                 String?
+  avatar               String?
   password             String?
   googleId             String?   @unique
   role                 Role      @default(USER)
@@ -54,15 +56,88 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  profiles        Profile[]
-  subscription    Subscription?
-  payments        Payment[]
-  watchHistory    WatchHistory[]
-  ratings         Rating[]
-  contentRequests ContentRequest[]
-  supportTickets  SupportTicket[]
+  profiles            Profile[]
+  subscription        Subscription?
+  payments            Payment[]
+  watchHistory        WatchHistory[]
+  ratings             Rating[]
+  contentRequests     ContentRequest[]
+  supportTickets      SupportTicket[]
+  sentFriendships     Friendship[]       @relation("SentFriendships")
+  receivedFriendships Friendship[]       @relation("ReceivedFriendships")
+  hostedParties       WatchParty[]       @relation("PartyHost")
+  partyMemberships    WatchPartyMember[]
+  partyMessages       WatchPartyMessage[]
 
   @@index([email])
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Friendship {
+  id         String       @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  sender   User @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId])
+  @@index([senderId])
+}
+
+model WatchParty {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  hostId    String
+  contentId String
+  episodeId String?
+  position  Float    @default(0)
+  isPlaying Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  host     User                @relation("PartyHost", fields: [hostId], references: [id])
+  content  Content             @relation(fields: [contentId], references: [id])
+  members  WatchPartyMember[]
+  messages WatchPartyMessage[]
+
+  @@index([code])
+  @@index([hostId])
+}
+
+model WatchPartyMember {
+  id       String   @id @default(cuid())
+  partyId  String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  party WatchParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id])
+
+  @@unique([partyId, userId])
+}
+
+model WatchPartyMessage {
+  id        String   @id @default(cuid())
+  partyId   String
+  userId    String
+  message   String
+  createdAt DateTime @default(now())
+
+  party WatchParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id])
+
+  @@index([partyId])
 }
 
 model Profile {
@@ -125,6 +200,7 @@ model Content {
   ratings      Rating[]
   favorites    Favorite[]
   listItems    UserListItem[]
+  watchParties WatchParty[]
 
   @@index([type])
   @@index([isFeatured])

@@ -25,6 +25,8 @@ import { SupportModule } from './support/support.module';
 import { SettingsModule } from './settings/settings.module';
 import { ListsModule } from './lists/lists.module';
 import { AiModule } from './ai/ai.module';
+import { FriendsModule } from './friends/friends.module';
+import { WatchPartyModule } from './watch-party/watch-party.module';
 
 @Module({
   imports: [
@@ -58,6 +60,8 @@ import { AiModule } from './ai/ai.module';
     SettingsModule,
     ListsModule,
     AiModule,
+    FriendsModule,
+    WatchPartyModule,
   ],
 })
 export class AppModule {}
