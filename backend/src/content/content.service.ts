@@ -65,10 +65,14 @@ export class ContentService {
         seasons: {
           orderBy: { number: 'asc' },
           include: {
-            episodes: { orderBy: { number: 'asc' }, include: { subtitles: true } },
+            episodes: {
+              orderBy: { number: 'asc' },
+              include: { subtitles: true, videoSources: { orderBy: [{ isDefault: 'desc' }, { order: 'asc' }] } },
+            },
           },
         },
         subtitles: true,
+        videoSources: { orderBy: [{ isDefault: 'desc' }, { order: 'asc' }] },
         _count: { select: { ratings: true, favorites: true, watchHistory: true } },
       },
     });

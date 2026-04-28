@@ -28,6 +28,7 @@ import { AiModule } from './ai/ai.module';
 import { FriendsModule } from './friends/friends.module';
 import { WatchPartyModule } from './watch-party/watch-party.module';
 import { CouponsModule } from './coupons/coupons.module';
+import { VideoSourcesModule } from './video-sources/video-sources.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { CouponsModule } from './coupons/coupons.module';
     FriendsModule,
     WatchPartyModule,
     CouponsModule,
+    VideoSourcesModule,
   ],
 })
 export class AppModule {}

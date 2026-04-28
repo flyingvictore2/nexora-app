@@ -20,6 +20,7 @@ interface Subtitle {
 interface VideoPlayerProps {
   contentId: string;
   videoUrl: string;
+  videoType?: 'DIRECT' | 'EMBED' | 'HLS';
   title: string;
   episodeTitle?: string;
   subtitles?: Subtitle[];
@@ -43,6 +44,7 @@ interface VideoPlayerProps {
 export function VideoPlayer({
   contentId,
   videoUrl,
+  videoType = 'DIRECT',
   title,
   episodeTitle,
   subtitles = [],
@@ -287,6 +289,34 @@ export function VideoPlayer({
   };
 
   const progressPercent = videoDuration > 0 ? (currentTime / videoDuration) * 100 : 0;
+
+  /* ── Iframe embed player ─────────────────────────────────────── */
+  if (videoType === 'EMBED') {
+    return (
+      <div className="relative bg-black w-full h-full flex flex-col">
+        {/* Top bar */}
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center gap-3 px-4 py-3 bg-gradient-to-b from-black/80 to-transparent">
+          {onBack && (
+            <button onClick={onBack} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold truncate">{title}</p>
+            {episodeTitle && <p className="text-xs text-gray-300 truncate">{episodeTitle}</p>}
+          </div>
+          {topBarExtra}
+        </div>
+        <iframe
+          src={videoUrl}
+          className="w-full h-full border-0"
+          allowFullScreen
+          allow="autoplay; fullscreen; picture-in-picture"
+          title={episodeTitle || title}
+        />
+      </div>
+    );
+  }
 
   return (
     <div

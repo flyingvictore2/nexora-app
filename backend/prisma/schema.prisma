@@ -201,6 +201,7 @@ model Content {
   favorites    Favorite[]
   listItems    UserListItem[]
   watchParties WatchParty[]
+  videoSources VideoSource[]
 
   @@index([type])
   @@index([isFeatured])
@@ -245,7 +246,7 @@ model Episode {
   title        String
   description  String?
   thumbnailUrl String?
-  videoUrl     String
+  videoUrl     String?
   duration     Int?
   releaseDate  DateTime?
   isPublished  Boolean   @default(true)
@@ -255,12 +256,38 @@ model Episode {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  season       Season         @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  subtitles    Subtitle[]
-  watchHistory WatchHistory[]
+  season        Season         @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  subtitles     Subtitle[]
+  watchHistory  WatchHistory[]
+  videoSources  VideoSource[]
 
   @@unique([seasonId, number])
   @@index([seasonId])
+}
+
+enum VideoSourceType {
+  DIRECT
+  EMBED
+  HLS
+}
+
+model VideoSource {
+  id         String          @id @default(cuid())
+  episodeId  String?
+  contentId  String?
+  serverName String
+  url        String
+  quality    String?
+  type       VideoSourceType @default(DIRECT)
+  order      Int             @default(0)
+  isDefault  Boolean         @default(false)
+  createdAt  DateTime        @default(now())
+
+  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  content Content? @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([episodeId])
+  @@index([contentId])
 }
 
 model Plan {

@@ -9,7 +9,7 @@ export class CreateEpisodeDto {
   @IsString() title: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() thumbnailUrl?: string;
-  @IsString() videoUrl: string;
+  @IsOptional() @IsString() videoUrl?: string;
   @IsOptional() @IsNumber() @Type(() => Number) duration?: number;
   @IsOptional() @IsDateString() releaseDate?: string;
   @IsOptional() @IsBoolean() isPublished?: boolean;
@@ -25,7 +25,7 @@ export class EpisodesService {
     return this.prisma.episode.findMany({
       where: { seasonId },
       orderBy: { number: 'asc' },
-      include: { subtitles: true },
+      include: { subtitles: true, videoSources: { orderBy: [{ isDefault: 'desc' }, { order: 'asc' }] } },
     });
   }
 
@@ -34,6 +34,7 @@ export class EpisodesService {
       where: { id },
       include: {
         subtitles: true,
+        videoSources: { orderBy: [{ isDefault: 'desc' }, { order: 'asc' }] },
         season: { include: { content: { select: { id: true, title: true, type: true } } } },
       },
     });

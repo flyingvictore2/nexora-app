@@ -21,7 +21,7 @@ export class SeasonsService {
       include: {
         episodes: {
           orderBy: { number: 'asc' },
-          include: { subtitles: true },
+          include: { subtitles: true, videoSources: { orderBy: [{ isDefault: 'desc' }, { order: 'asc' }] } },
         },
         _count: { select: { episodes: true } },
       },
@@ -34,7 +34,7 @@ export class SeasonsService {
       include: {
         episodes: {
           orderBy: { number: 'asc' },
-          include: { subtitles: true },
+          include: { subtitles: true, videoSources: { orderBy: [{ isDefault: 'desc' }, { order: 'asc' }] } },
         },
       },
     });

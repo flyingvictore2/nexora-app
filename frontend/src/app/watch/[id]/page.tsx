@@ -7,12 +7,22 @@ import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { ContentRow } from '@/components/content/ContentRow';
 import { WatchPartyPanel } from '@/components/watch-party/WatchPartyPanel';
 import { DownloadButton } from '@/components/content/DownloadButton';
-import { Star, Plus, Play, Clock, Globe, Loader2 } from 'lucide-react';
+import { Star, Plus, Play, Clock, Globe, Loader2, Server, ChevronDown } from 'lucide-react';
 import { cn, formatDuration, getMaturityColor } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { useFavoriteToggle, useRateContent } from '@/hooks/useContent';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+
+type VideoSource = {
+  id: string;
+  serverName: string;
+  url: string;
+  quality: string;
+  type: 'DIRECT' | 'EMBED' | 'HLS';
+  isDefault: boolean;
+  order: number;
+};
 
 export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +33,7 @@ export default function WatchPage() {
   const [selectedEpisode, setSelectedEpisode] = useState<string | null>(episodeId);
   const [isPlaying, setIsPlaying] = useState(false);
   const [userRating, setUserRating] = useState(0);
+  const [selectedSourceIdx, setSelectedSourceIdx] = useState(0);
 
   // Watch Party sync state
   const [partyCurrentTime, setPartyCurrentTime] = useState(0);
@@ -72,14 +83,35 @@ export default function WatchPage() {
   const currentEpisodeIndex = episodes.findIndex((e: any) => e.id === selectedEpisode);
   const nextEpisode = currentEpisodeIndex >= 0 ? episodes[currentEpisodeIndex + 1] : null;
 
-  const videoUrl = signedUrl?.url || content.videoUrl || '';
+  // Determine available sources for current playback target
+  const availableSources: VideoSource[] = (() => {
+    if (content.type === 'MOVIE') {
+      if (content.videoSources && content.videoSources.length > 0) return content.videoSources;
+      if (content.videoUrl) return [{ id: 'legacy', serverName: 'Principal', url: content.videoUrl, quality: 'Auto', type: 'DIRECT', isDefault: true, order: 0 }];
+    } else if (currentEpisodeObj) {
+      if (currentEpisodeObj.videoSources && currentEpisodeObj.videoSources.length > 0) return currentEpisodeObj.videoSources;
+      if (currentEpisodeObj.videoUrl) return [{ id: 'legacy', serverName: 'Principal', url: currentEpisodeObj.videoUrl, quality: 'Auto', type: 'DIRECT', isDefault: true, order: 0 }];
+    }
+    return [];
+  })();
+
+  const activeSource = availableSources[selectedSourceIdx] || availableSources[0];
+  const videoUrl = activeSource?.url || signedUrl?.url || content.videoUrl || '';
+  const videoType: 'DIRECT' | 'EMBED' | 'HLS' = activeSource?.type || 'DIRECT';
+
+  const handlePlayEpisode = (epId: string) => {
+    setSelectedEpisode(epId);
+    setSelectedSourceIdx(0);
+    setIsPlaying(true);
+  };
 
   if (isPlaying && videoUrl) {
     return (
-      <div className="fixed inset-0 bg-black z-50">
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
         <VideoPlayer
           contentId={id}
           videoUrl={videoUrl}
+          videoType={videoType}
           title={content.title}
           episodeTitle={currentEpisodeObj?.title}
           subtitles={
@@ -98,6 +130,7 @@ export default function WatchPage() {
           onEnded={() => {
             if (nextEpisode) {
               setSelectedEpisode(nextEpisode.id);
+              setSelectedSourceIdx(0);
             }
           }}
           onTimeUpdate={setPartyCurrentTime}
@@ -106,14 +139,37 @@ export default function WatchPage() {
           externalSeekSeq={seekSeq}
           externalPlaying={playTarget}
           topBarExtra={
-            <WatchPartyPanel
-              contentId={id}
-              episodeId={selectedEpisode ?? undefined}
-              currentTime={partyCurrentTime}
-              isPlaying={partyIsPlaying}
-              onSeek={handlePartySeek}
-              onPlayPause={handlePartyPlayPause}
-            />
+            <>
+              {/* Server selector in player */}
+              {availableSources.length > 1 && (
+                <div className="flex items-center gap-1.5">
+                  {availableSources.map((src, i) => (
+                    <button
+                      key={src.id}
+                      onClick={() => setSelectedSourceIdx(i)}
+                      className={cn(
+                        'flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors',
+                        i === selectedSourceIdx
+                          ? 'bg-nexora-red text-white'
+                          : 'bg-white/10 hover:bg-white/20 text-gray-300',
+                      )}
+                    >
+                      <Server className="w-3 h-3" />
+                      {src.serverName}
+                      {src.quality && <span className="text-[10px] opacity-75">·{src.quality}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <WatchPartyPanel
+                contentId={id}
+                episodeId={selectedEpisode ?? undefined}
+                currentTime={partyCurrentTime}
+                isPlaying={partyIsPlaying}
+                onSeek={handlePartySeek}
+                onPlayPause={handlePartyPlayPause}
+              />
+            </>
           }
         />
       </div>
@@ -242,6 +298,7 @@ export default function WatchPage() {
                     const firstEp = content.seasons?.[0]?.episodes?.[0];
                     if (firstEp) setSelectedEpisode(firstEp.id);
                   }
+                  setSelectedSourceIdx(0);
                   setIsPlaying(true);
                 }}
                 className="flex items-center gap-2 bg-white text-black font-bold px-8 py-3 rounded hover:bg-gray-200 transition-colors"
@@ -270,6 +327,34 @@ export default function WatchPage() {
               )}
             </div>
 
+            {/* Movie server selector */}
+            {content.type === 'MOVIE' && availableSources.length > 1 && (
+              <div className="mt-5">
+                <p className="text-sm text-gray-400 mb-2 flex items-center gap-1.5">
+                  <Server className="w-4 h-4" /> Servidores disponibles:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {availableSources.map((src, i) => (
+                    <button
+                      key={src.id}
+                      onClick={() => setSelectedSourceIdx(i)}
+                      className={cn(
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors',
+                        i === selectedSourceIdx
+                          ? 'bg-nexora-red/20 border-nexora-red text-white'
+                          : 'bg-white/5 border-white/20 text-gray-300 hover:border-white/40',
+                      )}
+                    >
+                      <Server className="w-3.5 h-3.5" />
+                      {src.serverName}
+                      {src.quality && <span className="text-xs text-gray-400">· {src.quality}</span>}
+                      {src.type === 'EMBED' && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded">iframe</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Rating */}
             <div className="mt-6">
               <p className="text-sm text-gray-400 mb-2">Tu valoración:</p>
@@ -296,74 +381,118 @@ export default function WatchPage() {
           </div>
         </div>
 
-        {/* Seasons & Episodes for series */}
+        {/* Seasons & Episodes */}
         {content.type !== 'MOVIE' && content.seasons?.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center gap-4 mb-6">
               <h2 className="text-xl font-bold">Episodios</h2>
               {content.seasons.length > 1 && (
-                <select
-                  value={selectedSeason}
-                  onChange={(e) => setSelectedSeason(Number(e.target.value))}
-                  className="bg-nexora-dark-3 border border-white/20 text-white px-3 py-2 rounded text-sm"
-                >
-                  {content.seasons.map((s: any, i: number) => (
-                    <option key={s.id} value={i}>Temporada {s.number}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedSeason}
+                    onChange={(e) => { setSelectedSeason(Number(e.target.value)); setSelectedSourceIdx(0); }}
+                    className="bg-nexora-dark-3 border border-white/20 text-white px-3 py-2 pr-8 rounded text-sm appearance-none cursor-pointer"
+                  >
+                    {content.seasons.map((s: any, i: number) => (
+                      <option key={s.id} value={i}>
+                        {s.title || `Temporada ${s.number}`}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-gray-400" />
+                </div>
               )}
             </div>
 
             <div className="space-y-2">
-              {currentSeason?.episodes?.map((ep: any, idx: number) => (
-                <div
-                  key={ep.id}
-                  className={cn(
-                    'flex gap-4 p-4 rounded-lg cursor-pointer transition-colors group',
-                    selectedEpisode === ep.id ? 'bg-white/10' : 'hover:bg-white/5',
-                  )}
-                  onClick={() => { setSelectedEpisode(ep.id); setIsPlaying(true); }}
-                >
-                  <div className="flex-shrink-0 relative">
-                    <img
-                      src={ep.thumbnailUrl || `https://picsum.photos/seed/ep${idx}/400/225`}
-                      alt={ep.title}
-                      className="w-32 md:w-40 aspect-video object-cover rounded"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded">
-                      <Play className="w-8 h-8 fill-white" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium">
-                          {ep.number}. {ep.title}
-                        </p>
-                        {ep.duration && (
-                          <p className="text-gray-400 text-xs mt-0.5">{ep.duration}min</p>
-                        )}
-                      </div>
-                      <DownloadButton
-                        contentId={id}
-                        title={content.title}
-                        posterUrl={content.posterUrl}
-                        type={content.type}
-                        episodeId={ep.id}
-                        episodeTitle={ep.title}
-                        seasonNumber={currentSeason?.number}
-                        episodeNumber={ep.number}
-                        duration={ep.duration}
-                        iconOnly
-                        className="flex-shrink-0 p-1.5 bg-white/5 hover:bg-white/10 rounded-lg"
-                      />
-                    </div>
-                    {ep.description && (
-                      <p className="text-gray-400 text-sm mt-1 line-clamp-2">{ep.description}</p>
+              {currentSeason?.episodes?.map((ep: any, idx: number) => {
+                const epSources: VideoSource[] = ep.videoSources && ep.videoSources.length > 0
+                  ? ep.videoSources
+                  : ep.videoUrl ? [{ id: 'legacy', serverName: 'Principal', url: ep.videoUrl, quality: 'Auto', type: 'DIRECT', isDefault: true, order: 0 }] : [];
+
+                const isSelected = selectedEpisode === ep.id;
+
+                return (
+                  <div
+                    key={ep.id}
+                    className={cn(
+                      'flex gap-4 p-4 rounded-lg transition-colors group',
+                      isSelected ? 'bg-white/10' : 'hover:bg-white/5',
                     )}
+                  >
+                    {/* Thumbnail */}
+                    <div
+                      className="flex-shrink-0 relative cursor-pointer"
+                      onClick={() => handlePlayEpisode(ep.id)}
+                    >
+                      <img
+                        src={ep.thumbnailUrl || `https://picsum.photos/seed/ep${idx}/400/225`}
+                        alt={ep.title}
+                        className="w-32 md:w-40 aspect-video object-cover rounded"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded">
+                        <Play className="w-8 h-8 fill-white" />
+                      </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => handlePlayEpisode(ep.id)}
+                        >
+                          <p className="font-medium">
+                            {ep.number}. {ep.title}
+                          </p>
+                          {ep.duration && (
+                            <p className="text-gray-400 text-xs mt-0.5">{ep.duration}min</p>
+                          )}
+                        </div>
+                        <DownloadButton
+                          contentId={id}
+                          title={content.title}
+                          posterUrl={content.posterUrl}
+                          type={content.type}
+                          episodeId={ep.id}
+                          episodeTitle={ep.title}
+                          seasonNumber={currentSeason?.number}
+                          episodeNumber={ep.number}
+                          duration={ep.duration}
+                          iconOnly
+                          className="flex-shrink-0 p-1.5 bg-white/5 hover:bg-white/10 rounded-lg"
+                        />
+                      </div>
+
+                      {ep.description && (
+                        <p className="text-gray-400 text-sm mt-1 line-clamp-2">{ep.description}</p>
+                      )}
+
+                      {/* Server selector per episode */}
+                      {epSources.length > 1 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {epSources.map((src, si) => (
+                            <button
+                              key={src.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedEpisode(ep.id);
+                                setSelectedSourceIdx(si);
+                                setIsPlaying(true);
+                              }}
+                              className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-300 transition-colors"
+                            >
+                              <Server className="w-2.5 h-2.5" />
+                              {src.serverName}
+                              {src.quality && <span className="opacity-60">·{src.quality}</span>}
+                              {src.type === 'EMBED' && <span className="text-blue-400">iframe</span>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
