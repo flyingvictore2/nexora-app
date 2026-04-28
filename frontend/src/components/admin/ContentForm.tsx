@@ -328,13 +328,15 @@ export function ContentForm({ content, onClose, onSuccess }: ContentFormProps) {
   const handleSave = async (data: FormData) => {
     setSaving(true);
     try {
-      const payload = {
+      const payload: Record<string, any> = {
         ...data,
         genres: data.genres ? data.genres.split(',').map((g) => g.trim()).filter(Boolean) : [],
         cast: data.cast ? data.cast.split(',').map((c) => c.trim()).filter(Boolean) : [],
-        videoUrl: null,
-        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString() : null,
       };
+      // Remove fields that must be undefined (not null) for class-validator @IsOptional to skip them
+      delete payload.videoUrl;
+      if (!payload.scheduledAt) delete payload.scheduledAt;
+      else payload.scheduledAt = new Date(payload.scheduledAt).toISOString();
 
       let contentId = content?.id;
 

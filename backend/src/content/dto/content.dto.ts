@@ -65,6 +65,7 @@ export class CreateContentDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }) => value || undefined)
   @IsDateString()
   releaseDate?: string;
 
@@ -127,6 +128,7 @@ export class CreateContentDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }) => value || undefined)
   @IsDateString()
   scheduledAt?: string;
 
