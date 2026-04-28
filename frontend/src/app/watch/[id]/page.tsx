@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useContentById, useSignedUrl, useSimilarContent } from '@/hooks/useContent';
 import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { ContentRow } from '@/components/content/ContentRow';
+import { WatchPartyPanel } from '@/components/watch-party/WatchPartyPanel';
 import { Star, Plus, Play, Clock, Calendar, Globe, Film, Loader2 } from 'lucide-react';
 import { cn, formatDuration, getMaturityColor } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
@@ -21,6 +22,22 @@ export default function WatchPage() {
   const [selectedEpisode, setSelectedEpisode] = useState<string | null>(episodeId);
   const [isPlaying, setIsPlaying] = useState(false);
   const [userRating, setUserRating] = useState(0);
+
+  // Watch Party sync state
+  const [partyCurrentTime, setPartyCurrentTime] = useState(0);
+  const [partyIsPlaying, setPartyIsPlaying] = useState(false);
+  const [seekTarget, setSeekTarget] = useState<number | undefined>(undefined);
+  const [seekSeq, setSeekSeq] = useState(0);
+  const [playTarget, setPlayTarget] = useState<boolean | undefined>(undefined);
+
+  const handlePartySeek = useCallback((time: number) => {
+    setSeekTarget(time);
+    setSeekSeq((s) => s + 1);
+  }, []);
+
+  const handlePartyPlayPause = useCallback((playing: boolean) => {
+    setPlayTarget(playing);
+  }, []);
 
   const { activeProfile } = useAuthStore();
   const { data: content, isLoading } = useContentById(id);
@@ -82,6 +99,21 @@ export default function WatchPage() {
               setSelectedEpisode(nextEpisode.id);
             }
           }}
+          onTimeUpdate={setPartyCurrentTime}
+          onPlayStateChange={setPartyIsPlaying}
+          externalSeek={seekTarget}
+          externalSeekSeq={seekSeq}
+          externalPlaying={playTarget}
+          topBarExtra={
+            <WatchPartyPanel
+              contentId={id}
+              episodeId={selectedEpisode ?? undefined}
+              currentTime={partyCurrentTime}
+              isPlaying={partyIsPlaying}
+              onSeek={handlePartySeek}
+              onPlayPause={handlePartyPlayPause}
+            />
+          }
         />
       </div>
     );

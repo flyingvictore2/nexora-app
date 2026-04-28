@@ -31,6 +31,13 @@ interface VideoPlayerProps {
   onBack?: () => void;
   onEnded?: () => void;
   profileId?: string;
+  // Watch Party sync
+  onTimeUpdate?: (time: number) => void;
+  onPlayStateChange?: (playing: boolean) => void;
+  externalSeek?: number;
+  externalSeekSeq?: number;
+  externalPlaying?: boolean;
+  topBarExtra?: React.ReactNode;
 }
 
 export function VideoPlayer({
@@ -47,6 +54,12 @@ export function VideoPlayer({
   onBack,
   onEnded,
   profileId,
+  onTimeUpdate,
+  onPlayStateChange,
+  externalSeek,
+  externalSeekSeq,
+  externalPlaying,
+  topBarExtra,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -121,8 +134,8 @@ export function VideoPlayer({
       }
     });
 
-    player.on('play', () => setIsPlaying(true));
-    player.on('pause', () => setIsPlaying(false));
+    player.on('play', () => { setIsPlaying(true); onPlayStateChange?.(true); });
+    player.on('pause', () => { setIsPlaying(false); onPlayStateChange?.(false); });
     player.on('volumechange', () => {
       setVolume(player.volume());
       setIsMuted(player.muted());
@@ -131,6 +144,7 @@ export function VideoPlayer({
       const t = player.currentTime();
       const d = player.duration();
       setCurrentTime(t);
+      onTimeUpdate?.(t);
       if (d && d !== Infinity) setVideoDuration(d);
 
       // Intro skip
@@ -170,6 +184,23 @@ export function VideoPlayer({
       }
     };
   }, [videoUrl]);
+
+  // External seek (Watch Party sync)
+  useEffect(() => {
+    if (externalSeek !== undefined && playerRef.current) {
+      playerRef.current.currentTime(externalSeek);
+    }
+  }, [externalSeekSeq]); // fires when seq changes, uses externalSeek value
+
+  // External play/pause (Watch Party sync)
+  useEffect(() => {
+    if (externalPlaying === undefined || !playerRef.current) return;
+    if (externalPlaying && playerRef.current.paused()) {
+      playerRef.current.play();
+    } else if (!externalPlaying && !playerRef.current.paused()) {
+      playerRef.current.pause();
+    }
+  }, [externalPlaying]);
 
   const togglePlay = () => {
     if (!playerRef.current) return;
@@ -292,10 +323,11 @@ export function VideoPlayer({
               <ChevronLeft className="w-6 h-6" />
             </button>
           )}
-          <div>
+          <div className="flex-1">
             <p className="font-bold text-sm md:text-base">{title}</p>
             {episodeTitle && <p className="text-gray-300 text-xs">{episodeTitle}</p>}
           </div>
+          {topBarExtra}
         </div>
 
         {/* Bottom controls */}
