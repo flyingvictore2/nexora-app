@@ -1,128 +1,31 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useContentById, useSignedUrl, useSimilarContent, useFavoriteToggle, useRateContent } from '@/hooks/useContent';
+import { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useContentById, useSimilarContent, useFavoriteToggle, useRateContent } from '@/hooks/useContent';
 import { DownloadButton } from '@/components/content/DownloadButton';
-import { WatchPartyPanel } from '@/components/watch-party/WatchPartyPanel';
 import {
-  Star, Play, Clock, Globe, Loader2, Server,
-  ChevronDown, Monitor, Lightbulb, LightbulbOff, ArrowLeft,
-  MessageSquare, Heart, ExternalLink, Check,
+  Star, Clock, Globe, Loader2, ArrowLeft,
+  MessageSquare, Heart, ExternalLink,
 } from 'lucide-react';
-import { cn, formatDuration, getMaturityColor, detectVideoType } from '@/lib/utils';
-import { useAuthStore } from '@/store/auth.store';
+import { cn, formatDuration, getMaturityColor } from '@/lib/utils';
 import Link from 'next/link';
 
 /* ─── Types ─────────────────────────────────────────────────── */
-type VideoSource = {
-  id: string; serverName: string; url: string;
-  quality: string; type: 'DIRECT' | 'EMBED' | 'HLS';
-  isDefault: boolean; order: number;
-};
 type Tab = 'links' | 'cast' | 'comments' | 'reviews';
-
-/* ─── Inline player ─────────────────────────────────────────── */
-function InlinePlayer({
-  url, type, title,
-}: { url: string; type: 'DIRECT' | 'EMBED' | 'HLS'; title: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (type !== 'HLS' || !videoRef.current) return;
-    // Dynamic HLS.js for m3u8 streams
-    import('hls.js').then(({ default: Hls }) => {
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(videoRef.current!);
-        return () => hls.destroy();
-      } else if (videoRef.current!.canPlayType('application/vnd.apple.mpegurl')) {
-        videoRef.current!.src = url;
-      }
-    }).catch(() => {
-      if (videoRef.current) videoRef.current.src = url;
-    });
-  }, [url, type]);
-
-  if (type === 'EMBED') {
-    return (
-      <iframe
-        src={url}
-        className="w-full h-full border-0"
-        allowFullScreen
-        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-top-navigation-by-user-activation"
-        referrerPolicy="no-referrer-when-downgrade"
-        title={title}
-        loading="eager"
-      />
-    );
-  }
-
-  return (
-    <video
-      ref={videoRef}
-      src={type === 'DIRECT' ? url : undefined}
-      controls
-      autoPlay
-      className="w-full h-full"
-      title={title}
-    />
-  );
-}
 
 /* ─── Main page ─────────────────────────────────────────────── */
 export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [selectedSeason, setSelectedSeason] = useState(0);
-  const [selectedEpisode, setSelectedEpisode] = useState<string | null>(
-    searchParams.get('episode'),
-  );
-  const [selectedSourceIdx, setSelectedSourceIdx] = useState(0);
-  const [showPlayer, setShowPlayer] = useState(false);
-  const [lightsOff, setLightsOff] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('links');
   const [userRating, setUserRating] = useState(0);
 
-  const { activeProfile } = useAuthStore();
   const { data: content, isLoading } = useContentById(id);
-  const { data: signedUrl } = useSignedUrl(id, selectedEpisode || undefined);
   const { data: similar } = useSimilarContent(id);
   const { mutate: toggleFavorite } = useFavoriteToggle();
   const { mutate: rateContent } = useRateContent();
-
-  // Reset player when episode / source changes
-  useEffect(() => { setShowPlayer(false); }, [selectedEpisode]);
-
-  /* ── Source resolution ── */
-  const currentSeason = content?.seasons?.[selectedSeason];
-  const episodes = currentSeason?.episodes || [];
-  const currentEpisodeObj = episodes.find((e: any) => e.id === selectedEpisode);
-  const nextEpisode = (() => {
-    const idx = episodes.findIndex((e: any) => e.id === selectedEpisode);
-    return idx >= 0 ? episodes[idx + 1] : null;
-  })();
-
-  const availableSources: VideoSource[] = (() => {
-    if (!content) return [];
-    if (content.type === 'MOVIE') {
-      if (content.videoSources?.length) return content.videoSources;
-      if (content.videoUrl) return [{ id: 'legacy', serverName: 'Servidor 1', url: content.videoUrl, quality: 'Auto', type: detectVideoType(content.videoUrl) as any, isDefault: true, order: 0 }];
-    } else if (currentEpisodeObj) {
-      if (currentEpisodeObj.videoSources?.length) return currentEpisodeObj.videoSources;
-      if (currentEpisodeObj.videoUrl) return [{ id: 'legacy', serverName: 'Servidor 1', url: currentEpisodeObj.videoUrl, quality: 'Auto', type: detectVideoType(currentEpisodeObj.videoUrl) as any, isDefault: true, order: 0 }];
-    }
-    return [];
-  })();
-
-  const activeSource = availableSources[selectedSourceIdx] ?? availableSources[0];
-  const rawUrl = activeSource?.url || (signedUrl as any)?.url || content?.videoUrl || '';
-  const typeHint = activeSource?.type || (signedUrl as any)?.type;
-  const videoType = detectVideoType(rawUrl, typeHint);
 
   /* ── Loading ── */
   if (isLoading) {
@@ -152,17 +55,9 @@ export default function WatchPage() {
 
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white">
-      {/* Lights-off overlay */}
-      {lightsOff && (
-        <div
-          className="fixed inset-0 bg-black/85 z-10 cursor-pointer"
-          onClick={() => setLightsOff(false)}
-        />
-      )}
 
       {/* ── Header ── */}
       <div className="relative">
-        {/* Banner blur bg */}
         {content.bannerUrl && (
           <div className="absolute inset-0 h-56 overflow-hidden">
             <img src={content.bannerUrl} className="w-full h-full object-cover blur-sm opacity-20 scale-105" alt="" />
@@ -245,9 +140,9 @@ export default function WatchPage() {
             </div>
           </aside>
 
-          {/* ── Center: Content + Player ── */}
+          {/* ── Center: Content ── */}
           <div className="flex-1 min-w-0">
-            {/* Genres + meta row */}
+            {/* Genres */}
             <div className="flex flex-wrap items-center gap-2 mb-3">
               {content.genres?.map((g: string) => (
                 <Link key={g} href={`/browse?genre=${g}`} className="text-xs bg-nexora-red/20 hover:bg-nexora-red/30 text-nexora-red px-2.5 py-0.5 rounded-full transition-colors">
@@ -296,24 +191,10 @@ export default function WatchPage() {
             {/* ── ENLACES tab ── */}
             {activeTab === 'links' && (
               <div className="space-y-4">
-                {/* Action buttons */}
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => {
-                      if (content.type !== 'MOVIE' && !selectedEpisode) {
-                        const firstEp = content.seasons?.[0]?.episodes?.[0];
-                        if (firstEp) setSelectedEpisode(firstEp.id);
-                      }
-                      setSelectedSourceIdx(0);
-                      setShowPlayer(true);
-                    }}
-                    className="flex items-center gap-2 bg-nexora-red hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition-colors"
-                  >
-                    <Monitor className="w-4 h-4" /> VER ONLINE
-                  </button>
-                  <button
-                    onClick={() => window.open(rawUrl, '_blank')}
-                    disabled={!rawUrl}
+                    onClick={() => window.open(content.videoUrl, '_blank')}
+                    disabled={!content.videoUrl}
                     className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors disabled:opacity-40"
                   >
                     <ExternalLink className="w-4 h-4" /> VER ONLINE EXTERNO
@@ -335,140 +216,6 @@ export default function WatchPage() {
                     />
                   )}
                 </div>
-
-                {/* ── Season/Episode selector (series) ── */}
-                {content.type !== 'MOVIE' && content.seasons?.length > 0 && (
-                  <div className="bg-nexora-dark-2 border border-white/10 rounded-xl p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="text-sm font-bold">Episodios</h3>
-                      {content.seasons.length > 1 && (
-                        <div className="relative">
-                          <select
-                            value={selectedSeason}
-                            onChange={(e) => { setSelectedSeason(Number(e.target.value)); setSelectedEpisode(null); }}
-                            className="bg-nexora-dark-3 border border-white/20 text-white text-sm px-3 py-1.5 pr-7 rounded appearance-none cursor-pointer"
-                          >
-                            {content.seasons.map((s: any, i: number) => (
-                              <option key={s.id} value={i}>{s.title || `Temporada ${s.number}`}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
-                      {currentSeason?.episodes?.map((ep: any) => {
-                        const isActive = selectedEpisode === ep.id;
-                        return (
-                          <button
-                            key={ep.id}
-                            onClick={() => { setSelectedEpisode(ep.id); setSelectedSourceIdx(0); setShowPlayer(true); }}
-                            className={cn(
-                              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm transition-colors',
-                              isActive ? 'bg-nexora-red/20 text-white' : 'text-gray-300 hover:bg-white/5',
-                            )}
-                          >
-                            {isActive
-                              ? <Play className="w-3.5 h-3.5 text-nexora-red flex-shrink-0 fill-nexora-red" />
-                              : <span className="w-3.5 text-center text-gray-500 text-xs flex-shrink-0">{ep.number}</span>
-                            }
-                            <span className="flex-1 truncate">{ep.title}</span>
-                            {ep.duration && <span className="text-xs text-gray-500 flex-shrink-0">{ep.duration}m</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Inline player area ── */}
-                {showPlayer && rawUrl && (
-                  <div className={cn('relative z-20', lightsOff && 'z-20')}>
-                    {/* Controls bar */}
-                    <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-                      <button
-                        onClick={() => setShowPlayer(false)}
-                        className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors"
-                      >
-                        <ArrowLeft className="w-4 h-4" /> Volver
-                      </button>
-                      <div className="flex items-center gap-3">
-                        <WatchPartyPanel
-                          contentId={id}
-                          episodeId={selectedEpisode ?? undefined}
-                          currentTime={0}
-                          isPlaying={false}
-                          onSeek={() => {}}
-                          onPlayPause={() => {}}
-                        />
-                        <button
-                          onClick={() => setLightsOff((v) => !v)}
-                          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors"
-                        >
-                          {lightsOff
-                            ? <><Lightbulb className="w-3.5 h-3.5" /> Encender luces</>
-                            : <><LightbulbOff className="w-3.5 h-3.5" /> Apagar luces</>
-                          }
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Server tabs */}
-                    {availableSources.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-2">
-                        {availableSources.map((src, i) => (
-                          <button
-                            key={src.id}
-                            onClick={() => setSelectedSourceIdx(i)}
-                            className={cn(
-                              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-                              i === selectedSourceIdx
-                                ? 'bg-nexora-red border-nexora-red text-white'
-                                : 'bg-nexora-dark-2 border-white/20 text-gray-300 hover:border-white/40',
-                            )}
-                          >
-                            <Server className="w-3 h-3" />
-                            {src.serverName}
-                            {src.quality && src.quality !== 'Auto' && (
-                              <span className="opacity-60">· {src.quality}</span>
-                            )}
-                            {i === selectedSourceIdx && <Check className="w-3 h-3" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Player container */}
-                    <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10">
-                      <InlinePlayer
-                        key={`${rawUrl}-${videoType}`}
-                        url={rawUrl}
-                        type={videoType}
-                        title={currentEpisodeObj?.title || content.title}
-                      />
-                    </div>
-
-                    {/* Next episode */}
-                    {nextEpisode && (
-                      <div className="mt-2 flex justify-end">
-                        <button
-                          onClick={() => { setSelectedEpisode(nextEpisode.id); setSelectedSourceIdx(0); }}
-                          className="flex items-center gap-2 text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg transition-colors"
-                        >
-                          Siguiente: {nextEpisode.title} →
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* No sources message */}
-                {!rawUrl && (
-                  <div className="bg-nexora-dark-2 border border-white/10 rounded-xl p-8 text-center">
-                    <Monitor className="w-10 h-10 text-gray-600 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">No hay fuentes de reproducción disponibles.</p>
-                  </div>
-                )}
               </div>
             )}
 
