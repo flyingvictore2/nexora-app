@@ -74,7 +74,10 @@
       "Bash(curl -s \"https://precious-charisma-production-b2c8.up.railway.app/api/v1/health\")",
       "Bash(curl -s \"https://precious-charisma-production-b2c8.up.railway.app/api/v1/requests/my\")",
       "Bash(curl -s \"https://precious-charisma-production-b2c8.up.railway.app/api/v1/support/my\")",
-      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\nexora\\\\.github\\\\workflows\")"
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\nexora\\\\.github\\\\workflows\")",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\nexora\\\\backend\\\\prisma\\\\migrations\\\\20260428200000_add_video_sources\")",
+      "Bash(Out-Null)",
+      "Bash(Write-Output \"done\")"
     ]
   }
 }

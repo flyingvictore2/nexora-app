@@ -388,7 +388,8 @@ export function ContentForm({ content, onClose, onSuccess }: ContentFormProps) {
         if (isEditing) {
           await api.delete(`/video-sources/content/${contentId}/all`).catch(() => {});
         }
-        for (const [idx, src] of movieSources.entries()) {
+        for (let idx = 0; idx < movieSources.length; idx++) {
+          const src = movieSources[idx];
           if (!src.url) continue;
           await api.post('/video-sources', {
             contentId,
@@ -402,7 +403,8 @@ export function ContentForm({ content, onClose, onSuccess }: ContentFormProps) {
         }
       } else {
         // Series/Anime: create/update seasons and episodes
-        for (const [si, season] of seasons.entries()) {
+        for (let si = 0; si < seasons.length; si++) {
+          const season = seasons[si];
           let seasonId = season.id;
           if (!seasonId) {
             const sr = await api.post('/seasons', {
@@ -413,7 +415,8 @@ export function ContentForm({ content, onClose, onSuccess }: ContentFormProps) {
             await api.put(`/seasons/${seasonId}`, { title: season.title });
           }
 
-          for (const [ei, ep] of season.episodes.entries()) {
+          for (let ei = 0; ei < season.episodes.length; ei++) {
+            const ep = season.episodes[ei];
             let episodeId = ep.id;
             const epPayload = {
               seasonId,
@@ -433,7 +436,8 @@ export function ContentForm({ content, onClose, onSuccess }: ContentFormProps) {
             }
 
             // Create video sources for this episode
-            for (const [vi, src] of ep.sources.entries()) {
+            for (let vi = 0; vi < ep.sources.length; vi++) {
+              const src = ep.sources[vi];
               if (!src.url) continue;
               await api.post('/video-sources', {
                 episodeId,
