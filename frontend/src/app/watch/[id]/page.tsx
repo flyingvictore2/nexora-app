@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useContentById, useSignedUrl, useSimilarContent, useFavoriteToggle, useRateContent } from '@/hooks/useContent';
 import { DownloadButton } from '@/components/content/DownloadButton';
 import { WatchPartyPanel } from '@/components/watch-party/WatchPartyPanel';
 import {
-  Star, Plus, Play, Clock, Globe, Loader2, Server,
+  Star, Play, Clock, Globe, Loader2, Server,
   ChevronDown, Monitor, Lightbulb, LightbulbOff, ArrowLeft,
-  Users, MessageSquare, Heart, Download, ExternalLink, Check,
+  MessageSquare, Heart, ExternalLink, Check,
 } from 'lucide-react';
 import { cn, formatDuration, getMaturityColor, detectVideoType } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
