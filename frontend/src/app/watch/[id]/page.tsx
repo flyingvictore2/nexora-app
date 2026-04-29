@@ -13,8 +13,6 @@ import {
 import { cn, formatDuration, getMaturityColor, detectVideoType } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import Link from 'next/link';
-import Image from 'next/image';
-import toast from 'react-hot-toast';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 type VideoSource = {
